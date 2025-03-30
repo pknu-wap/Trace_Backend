@@ -17,6 +17,11 @@ public class PrincipalDetails implements UserDetails {
     public PrincipalDetails(User user) {
         this.user = user;
     }
+    public PrincipalDetails(String username, String password, String role) {
+        this.user = new User(username, password, role);
+    }
+
+
 
 
     // 해당 User의 권한을 리턴 하는 곳
