@@ -1,0 +1,31 @@
+spring:
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/security?serverTimezone=Asia/Seoul
+#    username: "root"
+#    password:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+  datasource:
+    url: jdbc:h2:mem:security
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  #create update none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+
+
+  jwt:
+    # HS512 ????? ??? ??? ??? 512bit, ? 64byte ??? secret key? ??
+    secret: testSecretKey20240316testSecretKey20240316testSecretKey20240316
+    token:
+      access-expiration-time: 3600000
+      refresh-expiration-time: 86400000
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
