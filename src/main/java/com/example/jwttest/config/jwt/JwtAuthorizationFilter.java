@@ -1,5 +1,6 @@
-package com.example.jwttest;
+package com.example.jwttest.config.jwt;
 
+import com.example.jwttest.PrincipalDetails;
 import com.example.jwttest.Util.HttpResponseUtil;
 import com.example.jwttest.Util.JwtUtil;
 import com.example.jwttest.Util.RedisUtil;

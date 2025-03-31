@@ -1,6 +1,8 @@
 package com.example.jwttest.Util;
 
 import com.example.jwttest.PrincipalDetails;
+import com.example.jwttest.dto.JwtDto;
+import com.example.jwttest.service.PrincipalDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -8,8 +10,10 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -29,6 +33,7 @@ public class JwtUtil {
     private final Long accessExpMs;
     private final Long refreshExpMs;
     private final RedisUtil redisUtil;
+
 
     public JwtUtil(
             // 해당 @Value 값들은 yml에서 설정할 수 있다
@@ -152,6 +157,11 @@ public class JwtUtil {
             log.info("JWT 토큰이 잘못되었습니다.");
         }
     }
+
+
+
+
+
 
 
 }
