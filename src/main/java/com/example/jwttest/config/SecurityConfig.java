@@ -1,6 +1,6 @@
 package com.example.jwttest.config;
 
-import com.example.jwttest.JwtAuthenticationFilter;
+import com.example.jwttest.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import com.example.jwttest.Util.JwtUtil;
 
@@ -23,6 +22,8 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
+
+    private final String[] allowedUrls = {"/reissue", "/login"};
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -70,8 +71,9 @@ public class SecurityConfig {
         http.
                 authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
+                                .requestMatchers(allowedUrls).permitAll()
                                 .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 접근 허용
-                                .requestMatchers("/user/**","/reissue").authenticated()
+                                .requestMatchers("/user/**").authenticated()
                                 .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGE")
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .anyRequest().permitAll()
