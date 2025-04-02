@@ -43,6 +43,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 return;
             }
 
+            // logout 처리된 accessToken
+            if (redisUtil.get(accessToken) != null && redisUtil.get(accessToken).equals("logout")) {
+                logger.info("[*] Logout accessToken");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // 유효성 검사
             jwtUtil.validateToken(accessToken);
 
@@ -52,6 +59,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     null,
                     jwtUtil.getRoles(accessToken)
             );
+
 
             // 스프링 시큐리티 인증 토큰 생성
             Authentication authToken = new UsernamePasswordAuthenticationToken(
