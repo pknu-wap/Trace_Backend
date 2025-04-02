@@ -1,9 +1,13 @@
 package com.example.jwttest.config;
 
+import com.example.jwttest.Util.HttpResponseUtil;
+import com.example.jwttest.Util.RedisUtil;
 import com.example.jwttest.config.jwt.JwtAuthenticationFilter;
+import com.example.jwttest.config.jwt.JwtLogoutFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +26,7 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     private final String[] allowedUrls = {"/reissue", "/login"};
 
@@ -62,10 +67,10 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // 경로별 인가
-        http
-                .headers(headers ->
-                        headers.frameOptions(frameOptions ->
-                                frameOptions.disable()));
+//        http
+//                .headers(headers ->
+//                        headers.frameOptions(frameOptions ->
+//                                frameOptions.disable()));
 
         // 경로별 인가
         http.
@@ -78,6 +83,19 @@ public class SecurityConfig {
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .anyRequest().permitAll()
                 );
+        http
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .addLogoutHandler(new JwtLogoutFilter(redisUtil, jwtUtil))
+                        .logoutSuccessHandler((request, response, authentication) ->
+                                HttpResponseUtil.setSuccessResponse(
+                                        response,
+                                        HttpStatus.OK,
+                                        "로그아웃 성공"
+                                )
+                        )
+                );
+
         JwtAuthenticationFilter loginFilter = new JwtAuthenticationFilter(
                 authenticationManager(authenticationConfiguration), jwtUtil);
         loginFilter.setFilterProcessesUrl("/login");
