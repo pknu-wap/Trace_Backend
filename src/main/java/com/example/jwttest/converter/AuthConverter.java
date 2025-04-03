@@ -14,6 +14,7 @@ public class AuthConverter {
                 .role("ROLE_USER")
                 .password(passwordEncoder.encode(password))
                 .name(name)
+                .username("kakao_" + kakaoid) // Add username generation
                 .build();
     }
 }

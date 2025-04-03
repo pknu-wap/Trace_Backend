@@ -1,6 +1,9 @@
 package com.example.jwttest.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
 
 public class KakaoDto {
 
@@ -14,33 +17,49 @@ public class KakaoDto {
         private int refresh_token_expires_in;
     }
 
-    @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter @Setter
     public static class KakaoProfile {
         private Long id;
-        private String connected_at;
-        private Properties properties;
-        private KakaoAccount kakao_account;
+        @JsonProperty("connected_at")
+        private String connectedAt;
 
-        @Getter
-        public class Properties {
-            private String nickname;
-        }
+        @JsonProperty("kakao_account")
+        private KakaoAccount kakaoAccount;
 
-        @Getter
-        public class KakaoAccount {
-            private String email;
-            private Boolean is_email_verified;
-            private Boolean has_email;
-            private Boolean profile_nickname_needs_agreement;
-            private Boolean email_needs_agreement;
-            private Boolean is_email_valid;
+        @JsonProperty("properties")
+        private ProfileProperties properties;
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        @Getter @Setter
+        public static class KakaoAccount {
+            @JsonProperty("profile_nickname_needs_agreement")
+            private Boolean profileNicknameNeedsAgreement;
+            @JsonProperty("profile_image_needs_agreement")
+            private Boolean profileImageNeedsAgreement;
             private Profile profile;
 
-            @Getter
-            public class Profile {
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            @Getter @Setter
+            public static class Profile {
                 private String nickname;
-                private Boolean is_default_nickname;
+                @JsonProperty("thumbnail_image_url")
+                private String thumbnailImageUrl;
+                @JsonProperty("profile_image_url")
+                private String profileImageUrl;
+                @JsonProperty("is_default_image")
+                private Boolean isDefaultImage;
             }
+        }
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        @Getter @Setter
+        public static class ProfileProperties {
+            private String nickname;
+            @JsonProperty("profile_image")
+            private String profileImage;
+            @JsonProperty("thumbnail_image")
+            private String thumbnailImage;
         }
     }
 }

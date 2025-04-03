@@ -21,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 
 @Service
 @RequiredArgsConstructor
@@ -59,10 +61,11 @@ public class AuthService {
     }
 
     private User createNewUser(KakaoDto.KakaoProfile kakaoProfile) {
+        String tempPassword = UUID.randomUUID().toString();
         User newUser = AuthConverter.toUser(
                 kakaoProfile.getId(),
-                kakaoProfile.getKakao_account().getProfile().getNickname(),
-                null,
+                kakaoProfile.getKakaoAccount().getProfile().getNickname(),
+                tempPassword,
                 passwordEncoder
         );
         return userRepository.save(newUser);
