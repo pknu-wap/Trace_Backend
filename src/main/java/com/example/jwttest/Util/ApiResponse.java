@@ -14,7 +14,6 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    // Error response constructor (예시용, 현재 코드에서는 사용되지 않음)
     private ApiResponse(String code, String message) {
         this.isSuccess = false;
         this.code = code;

@@ -29,3 +29,8 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+  kakao:
+    auth:
+      client: d4e9bbcffde5311cf9a15f8d8da718d9
+      redirect: http://localhost:8080/auth/login/kakao

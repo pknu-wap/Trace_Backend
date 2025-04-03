@@ -28,7 +28,11 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
 
-    private final String[] allowedUrls = {"/reissue", "/login"};
+    private final String[] allowedUrls = {
+            "/reissue",
+            "/login",
+            "/auth/login/kakao/**",
+    };
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -66,7 +70,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // 경로별 인가
 //        http
 //                .headers(headers ->
 //                        headers.frameOptions(frameOptions ->
