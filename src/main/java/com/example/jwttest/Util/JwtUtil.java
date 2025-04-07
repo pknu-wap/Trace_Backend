@@ -21,6 +21,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,19 +34,26 @@ public class JwtUtil {
     private final Long accessExpMs;
     private final Long refreshExpMs;
     private final RedisUtil redisUtil;
+    byte[] decodedKey;
 
 
     public JwtUtil(
             // 해당 @Value 값들은 yml에서 설정할 수 있다
+
             @Value("${spring.jwt.secret}") String secret,
             @Value("${spring.jwt.token.access-expiration-time}") Long access,
             @Value("${spring.jwt.token.refresh-expiration-time}") Long refresh,
             RedisUtil redis) {
-        secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
-                Jwts.SIG.HS256.key().build().getAlgorithm());
+        decodedKey = Base64.getDecoder().decode(secret);
+        if(decodedKey.length != 64) {
+            throw new IllegalArgumentException("HS512 requires 64 byte key");
+        }
+        secretKey = new SecretKeySpec(decodedKey, "HmacSHA512");
         accessExpMs = access;
         refreshExpMs = refresh;
         redisUtil = redis;
+        log.info("Decoded Key Length: {} bytes", decodedKey.length);
+// HS256: 32 bytes, HS512: 64 bytes 여야 정상
     }
 
     // JWT 토큰을 입력으로 받아 토큰의 페이로드에서 사용자 이름(Username)을 추출

@@ -70,12 +70,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-//        http
-//                .headers(headers ->
-//                        headers.frameOptions(frameOptions ->
-//                                frameOptions.disable()));
+        http
+                .headers(headers ->
+                        headers.frameOptions(frameOptions ->
+                                frameOptions.disable()));
 
-        // 경로별 인가
+        //경로별 인가
         http.
                 authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
