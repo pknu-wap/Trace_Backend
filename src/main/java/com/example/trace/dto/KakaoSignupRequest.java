@@ -14,6 +14,7 @@ public class KakaoSignupRequest {
     private String idToken;
 
     // Additional user information for signup
+    private Long ProviderId;
     private String nickname;
     private String email;
     private String profileImage;

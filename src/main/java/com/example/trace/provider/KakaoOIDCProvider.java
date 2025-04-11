@@ -86,7 +86,7 @@ public class KakaoOIDCProvider implements OIDCProvider {
         try {
             String[] parts = token.split("\\.");
             if (parts.length != 3) {
-                return false;
+                return true; // Invalid token format
             }
 
             // Prepare data to verify
@@ -109,10 +109,10 @@ public class KakaoOIDCProvider implements OIDCProvider {
             sig.initVerify(publicKeyObj);
             sig.update(dataToVerify.getBytes());
 
-            return sig.verify(signature);
+            return !sig.verify(signature); // Return true if signature is invalid
         } catch (Exception e) {
             log.error("Error verifying token signature", e);
-            return false;
+            return true; // Consider any error as invalid signature
         }
     }
 }

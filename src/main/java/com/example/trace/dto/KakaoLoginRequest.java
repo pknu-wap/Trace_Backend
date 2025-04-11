@@ -11,9 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class KakaoLoginRequest {
     @NotBlank
-    private String userId;
-
-    @NotBlank
     private String idToken;
 
     private DeviceInfo deviceInfo;

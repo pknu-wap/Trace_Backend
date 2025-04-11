@@ -3,6 +3,10 @@ package com.example.trace.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -16,7 +20,7 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
-    private String providerId;
+    private String providerId; //provider에서 받아온 userId
 
     @Column(nullable = false)
     private String provider;
@@ -27,5 +31,15 @@ public class User {
 
     private String profileImage;
 
-    // Add other fields as needed
+    private String password;
+    private String username;
+    private String role;
+
+    public List<String> getRoleList() {
+        if(this.role != null && !this.role.isEmpty()) {
+            return Arrays.asList(this.role.split(","));
+        }
+        return new ArrayList<>();
+    }
+
 }

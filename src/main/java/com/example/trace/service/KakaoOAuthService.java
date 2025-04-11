@@ -1,11 +1,9 @@
 package com.example.trace.service;
 
+import com.example.trace.Util.JwtUtil;
 import com.example.trace.client.KakaoOAuthClient;
 import com.example.trace.domain.User;
-import com.example.trace.dto.KakaoLoginRequest;
-import com.example.trace.dto.KakaoSignupRequest;
-import com.example.trace.dto.SignupRequiredResponse;
-import com.example.trace.dto.TokenResponse;
+import com.example.trace.dto.*;
 
 import com.example.trace.models.OIDCDecodePayload;
 import com.example.trace.models.OIDCPublicKey;
@@ -34,6 +32,7 @@ public class KakaoOAuthService {
     private final KakaoOAuthClient kakaoOAuthClient;
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final JwtUtil jwtUtil;
 
     @Value("${oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId;
@@ -51,7 +50,7 @@ public class KakaoOAuthService {
                     .orElseThrow(() -> new IllegalArgumentException("No matching public key found"));
 
             // Verify signature
-            if (!oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
+            if (oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token signature");
             }
 
@@ -59,10 +58,10 @@ public class KakaoOAuthService {
             OIDCDecodePayload payload = oidcProvider.verifyAndDecodeToken(request.getIdToken(), kakaoClientId);
             
             // 2. Extract user ID from token payload
-            String userId = payload.getSub();
+            String ProviderId = payload.getSub();
             
             // 3. Check if user exists
-            Optional<User> userOpt = userRepository.findByProviderIdAndProvider(userId, "KAKAO");
+            Optional<User> userOpt = userRepository.findByProviderIdAndProvider(ProviderId, "KAKAO");
 
             if (userOpt.isPresent()) {
                 // User exists - login process
@@ -75,12 +74,12 @@ public class KakaoOAuthService {
                 return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
             } else {
                 // User doesn't exist - store in Redis for signup
-                String redisKey = "signup:" + userId;
+                String redisKey = "signup:" + ProviderId;
                 redisTemplate.opsForValue().set(redisKey, request.getIdToken());
                 redisTemplate.expire(redisKey, 1, TimeUnit.HOURS);
 
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new SignupRequiredResponse(userId, payload.getEmail(),
+                        .body(new SignupRequiredResponse(ProviderId, payload.getEmail(),
                                 payload.getNickname(), payload.getPicture()));
             }
 
@@ -112,7 +111,7 @@ public class KakaoOAuthService {
                     .orElseThrow(() -> new IllegalArgumentException("No matching public key found"));
 
             // Verify signature
-            if (!oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
+            if (oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token signature");
             }
 
@@ -126,6 +125,8 @@ public class KakaoOAuthService {
                     .email(request.getEmail() != null ? request.getEmail() : payload.getEmail())
                     .nickname(request.getNickname() != null ? request.getNickname() : payload.getNickname())
                     .profileImage(request.getProfileImage() != null ? request.getProfileImage() : payload.getPicture())
+                    .role("ROLE_USER")
+                    .username(payload.getSub())
                     .build();
 
             userRepository.save(newUser);
@@ -157,12 +158,12 @@ public class KakaoOAuthService {
 
     // These methods would use your JWT implementation
     private String generateAccessToken(User user) {
-        // Implementation depends on your JWT library
-        return "sample_access_token";
+        PrincipalDetails principalDetails = new PrincipalDetails(user);
+        return jwtUtil.createJwtAccessToken(principalDetails);
     }
 
     private String generateRefreshToken(User user) {
-        // Implementation depends on your JWT library
-        return "sample_refresh_token";
+        PrincipalDetails principalDetails = new PrincipalDetails(user);
+        return jwtUtil.createJwtRefreshToken(principalDetails);
     }
 }
