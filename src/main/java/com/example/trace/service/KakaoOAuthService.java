@@ -126,7 +126,6 @@ public class KakaoOAuthService {
                     .nickname(request.getNickname() != null ? request.getNickname() : payload.getNickname())
                     .profileImage(request.getProfileImage() != null ? request.getProfileImage() : payload.getPicture())
                     .role("ROLE_USER")
-                    .username(payload.getSub())
                     .build();
 
             userRepository.save(newUser);
