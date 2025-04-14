@@ -33,6 +33,13 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    
+    // H2 데이터베이스 의존성 추가
+    runtimeOnly 'com.h2database:h2'
+    
+    // MySQL 드라이버 (운영 환경용)
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    
     compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
