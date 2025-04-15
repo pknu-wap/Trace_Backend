@@ -1,0 +1,91 @@
+# 애플리케이션 기본 설정
+spring:
+  application:
+    name: Trace
+  
+  # 프로필 설정 (개발 환경 기본)
+  profiles:
+    active: dev
+  
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+  
+  # JWT 설정
+  jwt:
+    secret: ${JWT_SECRET}
+    token:
+      access-expiration-time: 3600000  # 1시간
+      refresh-expiration-time: 604800000  # 7일
+  
+  # Redis 설정
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# 서버 설정
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+
+# OAuth2 클라이언트 설정 - API 키 관리, 외부에 노출되면 안 됨
+oauth2:
+  client:
+    registration:
+      kakao:
+        client-id: ${KAKAO_CLIENT_ID}
+    provider:
+      kakao:
+        jwks-uri: https://kauth.kakao.com/.well-known/jwks.json
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    com.example.trace: DEBUG
+    org.springframework.security: INFO
+
+# 커스텀 애플리케이션 설정
+app:
+  base-url: http://localhost:8080/api/v1
+  cors:
+    allowed-origins: http://localhost:3000, http://localhost:8080
+  upload:
+    dir: ${user.home}/trace/uploads
+
+---
+# 개발 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  # H2 데이터베이스 설정
+  datasource:
+    url: jdbc:h2:mem:tracedb
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  
+  # H2 콘솔 활성화
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
