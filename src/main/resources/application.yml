@@ -74,6 +74,7 @@ spring:
   config:
     activate:
       on-profile: dev
+    import: application-secret.yml
   
   # H2 데이터베이스 설정
   datasource:
