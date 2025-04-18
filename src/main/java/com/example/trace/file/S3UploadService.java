@@ -27,13 +27,13 @@ public class S3UploadService {
     // 허용 확장자 목록
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif");
 
-    public String saveFile(MultipartFile multipartFile, FileType fileType) throws IOException {
+    public String saveFile(MultipartFile multipartFile, FileType fileType,String providerId) throws IOException {
         // 1. 파일 유효성 검사
         validateFile(multipartFile);
 
         // 2. 안전한 파일명 생성
         String originalFilename = multipartFile.getOriginalFilename();
-        String fileName = generateSafeFileName(fileType, originalFilename);
+        String fileName = generateSafeFileName(fileType, originalFilename,providerId);
 
         // 3. 메타데이터 설정
         ObjectMetadata metadata = new ObjectMetadata();
@@ -65,10 +65,10 @@ public class S3UploadService {
         }
     }
 
-    private String generateSafeFileName(FileType fileType, String originalFilename) {
+    private String generateSafeFileName(FileType fileType, String originalFilename,String providerId) {
         // UUID + 원본파일명 조합
         String uuid = UUID.randomUUID().toString().substring(0, 12);
-        String safeName = uuid + "_" + originalFilename.replace(" ", "_");
+        String safeName = uuid + "_" + originalFilename.replace(" ", "_") + "_" + providerId;
 
         // 타입별 디렉토리 분리
         return fileType.getPath() + safeName;
