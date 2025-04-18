@@ -125,6 +125,8 @@ public class KakaoOAuthService {
 
             // Decode and verify payload
             OIDCDecodePayload payload = oidcProvider.verifyAndDecodeToken(request.getIdToken(), kakaoClientId);
+
+            // 회원 가입 요청시, 사진 업로드를 했다면, s3에 저장
             if(request.getProfileImageFile() != null) {
                 request.setProfileImageUrl(s3UploadService.saveFile(request.getProfileImageFile(), FileType.PROFILE, payload.getSub()));
             }
@@ -166,7 +168,6 @@ public class KakaoOAuthService {
         }
     }
 
-    // These methods would use your JWT implementation
     private String generateAccessToken(User user) {
         PrincipalDetails principalDetails = new PrincipalDetails(user);
         return jwtUtil.createJwtAccessToken(principalDetails);
