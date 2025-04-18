@@ -29,7 +29,7 @@ public class User {
 
     private String nickname;
 
-    private String profileImage;
+    private String profileImageUrl;
 
     private String password;
     private String username;

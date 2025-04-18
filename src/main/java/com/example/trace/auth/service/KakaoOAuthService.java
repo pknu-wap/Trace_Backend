@@ -13,6 +13,8 @@ import com.example.trace.auth.models.OIDCPublicKey;
 import com.example.trace.auth.models.OIDCPublicKeyResponse;
 import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.auth.provider.KakaoOIDCProvider;
+import com.example.trace.file.FileType;
+import com.example.trace.file.S3UploadService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -36,6 +39,7 @@ public class KakaoOAuthService {
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtUtil jwtUtil;
+    private final S3UploadService s3UploadService;
 
     @Value("${oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId; // 카카오 로그인 api의앱 키.
@@ -92,6 +96,7 @@ public class KakaoOAuthService {
         }
     }
 
+    @Transactional
     public ResponseEntity<?> processSignup(KakaoSignupRequest request) {
         try {
             // 1. Get the stored ID token from Redis
@@ -120,6 +125,9 @@ public class KakaoOAuthService {
 
             // Decode and verify payload
             OIDCDecodePayload payload = oidcProvider.verifyAndDecodeToken(request.getIdToken(), kakaoClientId);
+            if(request.getProfileImageFile() != null) {
+                request.setProfileImageUrl(s3UploadService.saveFile(request.getProfileImageFile(), FileType.PROFILE, payload.getSub()));
+            }
 
             // 3. Create user with additional info
             User newUser = User.builder()
@@ -127,7 +135,7 @@ public class KakaoOAuthService {
                     .provider("KAKAO")
                     .email(request.getEmail() != null ? request.getEmail() : payload.getEmail())
                     .nickname(request.getNickname() != null ? request.getNickname() : payload.getNickname())
-                    .profileImage(request.getProfileImage() != null ? request.getProfileImage() : payload.getPicture())
+                    .profileImageUrl(request.getProfileImageUrl() != null ? request.getProfileImageUrl() : payload.getPicture()) // 기본 사진은 나중에 구현
                     .role("ROLE_USER")
                     .build();
 
