@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -139,6 +140,7 @@ public class KakaoOAuthService {
                     .nickname(request.getNickname() != null ? request.getNickname() : payload.getNickname())
                     .profileImageUrl(request.getProfileImageUrl() != null ? request.getProfileImageUrl() : payload.getPicture()) // 기본 사진은 나중에 구현
                     .role("ROLE_USER")
+                    .username(payload.getSub())
                     .build();
 
             userRepository.save(newUser);
@@ -159,12 +161,48 @@ public class KakaoOAuthService {
 
     private String extractUserIdFromIdToken(String idToken) {
         try {
+            // Check if token is null or empty
+            if (idToken == null || idToken.trim().isEmpty()) {
+                throw new IllegalArgumentException("ID token is null or empty");
+            }
+            
+            // Split the token
             String[] parts = idToken.split("\\.");
-            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
+            
+            // Verify we have at least 2 parts
+            if (parts.length < 2) {
+                throw new IllegalArgumentException("Invalid token format: token must have at least 2 parts");
+            }
+            
+            // Add padding if necessary 
+            String encodedPayload = parts[1];
+            while (encodedPayload.length() % 4 != 0) {
+                encodedPayload += "=";
+            }
+            
+            // Decode payload
+            String payloadJson = new String(Base64.getUrlDecoder().decode(encodedPayload), StandardCharsets.UTF_8);
+            log.debug("Decoded payload: {}", payloadJson);
+            
+            // Parse JSON and extract user ID
             JsonNode payloadNode = new ObjectMapper().readTree(payloadJson);
-            return payloadNode.get("sub").asText();
+            
+            // First try "sub" field (standard JWT)
+            if (payloadNode.has("sub")) {
+                return payloadNode.get("sub").asText();
+            } 
+            // Then try Kakao-specific ID field
+            else if (payloadNode.has("id")) {
+                return payloadNode.get("id").asText();
+            }
+            
+            throw new IllegalArgumentException("User ID not found in token payload");
+        } catch (IllegalArgumentException e) {
+            log.error("Token parsing error: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to extract user ID from token", e);
+            log.error("Failed to extract user ID from token", e);
+            throw new IllegalArgumentException("Failed to extract user ID from token: " + e.getMessage(), e);
         }
     }
 
