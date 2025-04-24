@@ -25,7 +25,7 @@ public class S3UploadService {
     private String bucket;
 
     // 허용 확장자 목록
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif","webp");
 
     public String saveFile(MultipartFile multipartFile, FileType fileType,String providerId) throws IOException {
         // 1. 파일 유효성 검사

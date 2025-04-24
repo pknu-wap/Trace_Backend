@@ -23,12 +23,14 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
-//                .requestMatchers("/auth/oauth/*",
-//                    "/api/v1/*"
-//                    ).permitAll()
-//                .anyRequest().authenticated()
-                            .anyRequest().permitAll() // 모든 요청 허용
+                .requestMatchers("/auth/oauth/*",
+                    "/api/v1/*",
+                    "/h2-console/**",
+                    "/api/v1/h2-console/**"
+                ).permitAll()
+                .anyRequest().authenticated()
             );
         
         return http.build();
