@@ -32,8 +32,8 @@ public class OAuthController {
     public ResponseEntity<?> signup(
             @RequestPart("request") KakaoSignupRequest request,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
-        log.info("Received signup request with id_token: {}",
-                request.getIdToken().substring(0, Math.min(10, request.getIdToken().length())) + "...");
+        log.info("Received signup request with user_id: {}",
+                request.getProviderId().substring(0, Math.min(10, request.getProviderId().length())) + "...");
 
         if (profileImage != null) {
             request.setProfileImageFile(profileImage);
