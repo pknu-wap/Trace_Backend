@@ -116,9 +116,12 @@ public class JwtUtil {
         Instant expiration = Instant.now().plusMillis(refreshExpMs);
         String refreshToken = tokenProvider(principalDetails, expiration);
 
+        // 사용자 providerId를 Redis 키로 사용 (username 대신)
+        String redisKey = "RT:" + principalDetails.getUser().getProviderId();
+        
         // 레디스에 저장
         redisUtil.save(
-                principalDetails.getUsername(),
+                redisKey,
                 refreshToken,
                 refreshExpMs,
                 TimeUnit.MILLISECONDS
