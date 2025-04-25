@@ -39,7 +39,6 @@ public class OAuthController {
             request.setProfileImageFile(profileImage);
         }
 
-        
         return kakaoOAuthService.processSignup(request);
     }
 }

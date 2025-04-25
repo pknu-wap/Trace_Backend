@@ -86,9 +86,8 @@ public class KakaoOAuthService {
                 redisTemplate.opsForValue().set(redisKey, request.getIdToken());
                 redisTemplate.expire(redisKey, 1, TimeUnit.HOURS);
 
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new SignupRequiredResponse(ProviderId, payload.getEmail(),
-                                payload.getNickname(), payload.getPicture()));
+                return ResponseEntity.ok(new SignupRequiredResponse(ProviderId, payload.getEmail(),
+                        payload.getNickname(), payload.getPicture()));
             }
 
         } catch (Exception e) {
