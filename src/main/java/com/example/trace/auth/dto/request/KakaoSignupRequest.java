@@ -13,7 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class KakaoSignupRequest {
     @NotBlank
-    private String idToken;
+    private String signupToken; // 임시 회원가입 토큰
+    @NotBlank
+    private String ProviderId;
+
     @NotBlank
     private String nickname;
     private String email;
