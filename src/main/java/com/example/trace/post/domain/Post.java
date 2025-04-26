@@ -1,8 +1,6 @@
 package com.example.trace.post.domain;
 
 import com.example.trace.auth.domain.User;
-import com.example.trace.domain.Comment;
-import com.example.trace.domain.Reaction;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,11 +35,6 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reaction> reactions = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at")

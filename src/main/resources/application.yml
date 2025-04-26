@@ -10,12 +10,17 @@ spring:
   # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
+  
+  # SQL 초기화 설정 비활성화
+  sql:
+    init:
+      mode: never
   
   # JWT 설정
   jwt:
@@ -74,6 +79,7 @@ spring:
   config:
     activate:
       on-profile: dev
+    import: application-secret.yml
   
   # H2 데이터베이스 설정
   datasource:

@@ -29,8 +29,9 @@ public class User {
 
     private String nickname;
 
-    private String profileImage;
+    private String profileImageUrl;
 
+    //spring security용으로 일단 두기.
     private String password;
     private String username;
     private String role;
