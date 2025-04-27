@@ -35,7 +35,7 @@ public class PostController {
 
     @PostMapping("/pictures")
     public ResponseEntity<PostDto> createPostWithPictures(
-            @Valid @RequestPart("postCreateDto") PostCreateDto postCreateDto,
+            @Valid @RequestPart("request") PostCreateDto postCreateDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFiles,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         Long userId = principalDetails.getUser().getId();
