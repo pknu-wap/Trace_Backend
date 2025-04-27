@@ -16,6 +16,7 @@ public class PostDto {
     private Long id;
     private String title;
     private String content;
+    private String imageUrl;
     private Long userId;
     private String username;
     private LocalDateTime createdAt;
@@ -26,6 +27,7 @@ public class PostDto {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
+                .imageUrl(post.getImageUrl())
                 .userId(post.getUser().getId())
                 .username(post.getUser().getUsername())
                 .createdAt(post.getCreatedAt())

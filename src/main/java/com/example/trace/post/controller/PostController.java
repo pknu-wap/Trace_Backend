@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -25,9 +25,20 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostDto> createPost(
             @Valid @RequestBody PostCreateDto postCreateDto,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        Long userId = Long.parseLong(principalDetails.getUsername());
         PostDto createdPost = postService.createPost(postCreateDto, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
+    }
+    @PostMapping("/pictures")
+    public ResponseEntity<PostDto> createPostWithPictures(
+            @Valid @RequestPart PostCreateDto postCreateDto,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        Long userId = principalDetails.getUser().getId();
+        String ProviderId = principalDetails.getUser().getProviderId();
+        postCreateDto.setImageFile(imageFile);
+        PostDto createdPost = postService.createPostWithPictures(postCreateDto,userId, ProviderId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
@@ -42,8 +53,7 @@ public class PostController {
             @PathVariable Long id,
             @Valid @RequestBody PostUpdateDto postUpdateDto,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        User user = principalDetails.getUser();
-        Long userId = user.getId();
+        Long userId = principalDetails.getUser().getId();
         PostDto updatedPost = postService.updatePost(id, postUpdateDto, userId);
         return ResponseEntity.ok(updatedPost);
     }
