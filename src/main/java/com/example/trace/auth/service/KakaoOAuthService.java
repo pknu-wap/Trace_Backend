@@ -42,6 +42,7 @@ public class KakaoOAuthService {
     @Value("${oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId; // 카카오 로그인 api의앱 키.
 
+
     public ResponseEntity<?> processLogin(KakaoLoginRequest request) {
         try {
             // 1. Validate ID token
@@ -81,7 +82,7 @@ public class KakaoOAuthService {
                 // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
                 String signupToken = UUID.randomUUID().toString();
                 redisTemplate.opsForValue().set("signup:" + signupToken, ProviderId, 1, TimeUnit.HOURS);
-                return ResponseEntity.ok(new SignupRequiredResponse(ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
+                return ResponseEntity.ok(new SignupRequiredResponse(signupToken,ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
             }
 
         } catch (Exception e) {
@@ -93,11 +94,10 @@ public class KakaoOAuthService {
     @Transactional
     public ResponseEntity<?> processSignup(KakaoSignupRequest request) {
         try {
-            // 레디스에 저장된 signupToken과 요청의 signupToken을 비교
+            // 레디스에 저장된 providerId와 요청의 providerId를 비교
             String redisKey = "signup:" + request.getSignupToken();
-            String storedSignUpToken = redisTemplate.opsForValue().get(redisKey);
-
-            if (storedSignUpToken == null || !storedSignUpToken.equals(request.getSignupToken())) {
+            String storedProviderId = redisTemplate.opsForValue().get(redisKey);
+            if (storedProviderId == null || !storedProviderId.equals(request.getProviderId())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired signup session");
             }
 
