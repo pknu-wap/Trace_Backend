@@ -25,15 +25,6 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<PostDto> createPost(
-            @Valid @RequestBody PostCreateDto postCreateDto,
-            @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        Long userId = Long.parseLong(principalDetails.getUsername());
-        PostDto createdPost = postService.createPost(postCreateDto, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
-    }
-
-    @PostMapping("/pictures")
     public ResponseEntity<PostDto> createPostWithPictures(
             @Valid @RequestPart("request") PostCreateDto postCreateDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFiles,
