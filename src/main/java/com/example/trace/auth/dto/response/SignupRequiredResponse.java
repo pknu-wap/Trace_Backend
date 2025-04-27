@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class SignupRequiredResponse {
+    private String signupToken;
     private String providerId;
     private String email;
     private String nickname;

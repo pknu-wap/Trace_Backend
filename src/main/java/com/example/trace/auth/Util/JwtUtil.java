@@ -51,14 +51,16 @@ public class JwtUtil {
 // HS256: 32 bytes, HS512: 64 bytes 여야 정상
     }
 
-    // JWT 토큰을 입력으로 받아 토큰의 페이로드에서 사용자 이름(Username)을 추출
+    // JWT 토큰을 입력으로 받아 토큰의 페이로드에서 사용자의 providerId를 추출
     public String getProviderId(String token) throws SignatureException {
-        return Jwts.parser()
+        String providerId = Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+        log.info("[*] providerId: {}", providerId);
+        return providerId;
     }
 
     // JWT 토큰을 입력으로 받아 토큰의 페이로드에서 사용자 이름(roll)을 추출
