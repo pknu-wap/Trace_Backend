@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,4 +23,7 @@ public class PostCreateDto {
 
     @JsonIgnore
     private MultipartFile imageFile;
+
+    @JsonIgnore
+    private List<MultipartFile> imageFiles;
 } 

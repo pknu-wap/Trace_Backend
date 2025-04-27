@@ -14,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/posts")
@@ -30,15 +32,22 @@ public class PostController {
         PostDto createdPost = postService.createPost(postCreateDto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
+
     @PostMapping("/pictures")
     public ResponseEntity<PostDto> createPostWithPictures(
-            @Valid @RequestPart PostCreateDto postCreateDto,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
+            @Valid @RequestPart("postCreateDto") PostCreateDto postCreateDto,
+            @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFiles,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         Long userId = principalDetails.getUser().getId();
         String ProviderId = principalDetails.getUser().getProviderId();
-        postCreateDto.setImageFile(imageFile);
-        PostDto createdPost = postService.createPostWithPictures(postCreateDto,userId, ProviderId);
+
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            // Limit to 5 images
+            int maxImages = Math.min(imageFiles.size(), 5);
+            postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
+        }
+
+        PostDto createdPost = postService.createPostWithPictures(postCreateDto, userId, ProviderId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
