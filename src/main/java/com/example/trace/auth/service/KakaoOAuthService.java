@@ -2,7 +2,7 @@ package com.example.trace.auth.service;
 
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.client.KakaoOAuthClient;
-import com.example.trace.auth.domain.User;
+import com.example.trace.user.User;
 import com.example.trace.auth.dto.*;
 
 import com.example.trace.auth.dto.request.KakaoLoginRequest;
