@@ -1,7 +1,7 @@
 package com.example.trace.auth;
 
 
-import com.example.trace.auth.domain.User;
+import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.Util.HttpResponseUtil;
 import com.example.trace.auth.Util.JwtUtil;

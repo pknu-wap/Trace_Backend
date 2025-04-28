@@ -1,6 +1,6 @@
 package com.example.trace.post.domain;
 
-import com.example.trace.auth.domain.User;
+import com.example.trace.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

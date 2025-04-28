@@ -1,4 +1,4 @@
-package com.example.trace.auth.domain;
+package com.example.trace.user;
 
 import jakarta.persistence.*;
 import lombok.*;
