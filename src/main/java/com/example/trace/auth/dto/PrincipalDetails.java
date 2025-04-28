@@ -1,7 +1,7 @@
 package com.example.trace.auth.dto;
 
 
-import com.example.trace.auth.domain.User;
+import com.example.trace.user.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

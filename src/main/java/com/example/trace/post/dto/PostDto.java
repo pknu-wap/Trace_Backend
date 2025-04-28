@@ -22,7 +22,6 @@ public class PostDto {
     private String content;
     private Long userId;
     private String nickname;
-    private String imageUrl;
     private List<String> imageUrls;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

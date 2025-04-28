@@ -1,6 +1,6 @@
 package com.example.trace.post.service;
 
-import com.example.trace.auth.domain.User;
+import com.example.trace.user.User;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
 import com.example.trace.post.dto.PostUpdateDto;
@@ -9,7 +9,6 @@ import com.example.trace.post.domain.PostImage;
 import com.example.trace.post.dto.PostCreateDto;
 import com.example.trace.post.dto.PostDto;
 import com.example.trace.auth.repository.UserRepository;
-import com.example.trace.post.repository.PostImageRepository;
 import com.example.trace.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;

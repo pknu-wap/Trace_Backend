@@ -3,7 +3,6 @@ package com.example.trace.auth.config;
 import com.example.trace.auth.JwtAuthenticationFilter;
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.Util.RedisUtil;
-import com.example.trace.auth.domain.User;
 import com.example.trace.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +39,9 @@ public class SecurityConfig {
                 .requestMatchers("/auth/oauth/*",
                     "/api/v1/*",
                     "/h2-console/**",
-                    "/api/v1/h2-console/**"
+                    "/api/v1/h2-console/**",
+                        "/api/v1/api/user/*",
+                        "/api/v1/api/posts/*"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

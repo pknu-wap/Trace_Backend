@@ -1,6 +1,6 @@
 package com.example.trace.post.controller;
 
-import com.example.trace.auth.domain.User;
+import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.post.dto.PostCreateDto;
 import com.example.trace.post.dto.PostDto;
