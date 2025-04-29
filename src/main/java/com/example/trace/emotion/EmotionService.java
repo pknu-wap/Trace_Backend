@@ -6,14 +6,16 @@ import com.example.trace.post.domain.Post;
 import com.example.trace.post.repository.PostRepository;
 import com.example.trace.user.User;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class EmotionService {
-    EmotionRepository emotionRepository;
-    PostRepository postRepository;
+    private final EmotionRepository emotionRepository;
+    private final PostRepository postRepository;
 
     public EmotionResponse toggleEmotion(Long postId,User user, EmotionType emotionType) {
         Optional<Emotion> existingEmotion = emotionRepository
