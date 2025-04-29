@@ -37,13 +37,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        log.info("[*] Jwt Filter");
+        log.info("[*] Jwt Filter - Request URI: {}", request.getRequestURI());
 
         try {
             String accessToken = jwtUtil.resolveAccessToken(request);
 
             // accessToken 없이 접근할 경우
             if (accessToken == null) {
+                log.info("[*] No accessToken, proceeding to next filter for URI: {}", request.getRequestURI());
                 filterChain.doFilter(request, response);
                 return;
             }
