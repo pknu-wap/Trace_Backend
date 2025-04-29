@@ -11,7 +11,6 @@ import lombok.Setter;
 public class EmotionResponse {
     private boolean isAdded;
     private String emotionType;
-    private Long count;
     public EmotionResponse(boolean isAdded, String emotionType) {
         this.isAdded = isAdded;
         this.emotionType = emotionType;
