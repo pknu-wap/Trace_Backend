@@ -2,6 +2,7 @@ package com.example.trace.gpt.service;
 
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.PostVerificationResult;
+import com.example.trace.gpt.repository.VerificationRepository;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class PostVerificationServiceImpl implements PostVerificationService {
 
     private final OpenAiService openAiService;
+    private final VerificationRepository verificationRepository;
     private static final String MODEL = "gpt-4o";
     
     @Value("${openai.api.key}")
@@ -56,19 +58,21 @@ public class PostVerificationServiceImpl implements PostVerificationService {
             PostVerificationResult result = verifyTextOnly(content);
 
             if (result.isTextResult()) {
-                Verification.builder()
+                Verification verification = Verification.builder()
                         .post(post)
                         .isTextVerified(true)
                         .successReason(result.getSuccessReason())
                         .build();
+                verificationRepository.save(verification);
                 return result;
 
             } else {
-                Verification.builder()
+                Verification verification = Verification.builder()
                         .post(post)
                         .isTextVerified(false)
                         .failureReason(result.getFailureReason())
                         .build();
+                verificationRepository.save(verification);
                 return result;
             }
 
@@ -76,20 +80,22 @@ public class PostVerificationServiceImpl implements PostVerificationService {
             // Both text and image verification is needed
             PostVerificationResult result = verifyTextAndImages(content, images);
             if(result.isTextResult()&& result.isImageResult()){
-                Verification.builder()
+                Verification verification = Verification.builder()
                         .post(post)
                         .isTextVerified(true)
                         .isImageVerified(true)
                         .successReason(result.getSuccessReason())
                         .build();
+                verificationRepository.save(verification);
                 return result;
             } else if (result.isTextResult()&& !result.isImageResult()) {
-                Verification.builder()
+                Verification verification = Verification.builder()
                         .post(post)
                         .isTextVerified(true)
                         .isImageVerified(false)
                         .failureReason(result.getFailureReason())
                         .build();
+                verificationRepository.save(verification);
                 return result;
             }
             else if (!result.isTextResult()&& result.isImageResult()){
@@ -100,22 +106,23 @@ public class PostVerificationServiceImpl implements PostVerificationService {
                         .failureReason(result.getFailureReason() != null ?
                                 result.getFailureReason() : "gpt의 논리적 오류")
                         .build();
-
-                Verification.builder()
+                Verification verification = Verification.builder()
                         .post(post)
                         .isTextVerified(false)
                         .isImageVerified(false)
                         .failureReason(correctedResult.getFailureReason())
                         .build();
+                verificationRepository.save(verification);
                 return correctedResult;
             }
             else {
-                Verification.builder()
+                Verification verification = Verification.builder()
                         .post(post)
                         .isTextVerified(false)
                         .isImageVerified(false)
                         .failureReason(result.getFailureReason())
                         .build();
+                verificationRepository.save(verification);
                 return result;
             }
         }
