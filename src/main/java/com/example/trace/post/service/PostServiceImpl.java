@@ -1,5 +1,7 @@
 package com.example.trace.post.service;
 
+import com.example.trace.gpt.dto.PostVerificationResult;
+import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
@@ -9,6 +11,7 @@ import com.example.trace.post.domain.PostImage;
 import com.example.trace.post.dto.PostCreateDto;
 import com.example.trace.post.dto.PostDto;
 import com.example.trace.auth.repository.UserRepository;
+import com.example.trace.post.repository.PostImageRepository;
 import com.example.trace.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,7 +29,8 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
-    
+    private final PostVerificationService postVerificationService;
+
     private static final int MAX_IMAGES = 5;
 
     @Override
@@ -122,4 +126,13 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
     }
 
-} 
+    @Override
+    @Transactional(readOnly = true)
+    public PostVerificationResult verifyPost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        return postVerificationService.verifyPost(post);
+    }
+
+}

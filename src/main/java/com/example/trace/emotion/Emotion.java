@@ -1,23 +1,24 @@
-package com.example.trace.post.domain;
+package com.example.trace.emotion;
 
+
+import com.example.trace.post.domain.Post;
+import com.example.trace.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "post_images")
-@Data
+@Table(name = "emotions")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostImage {
+public class Emotion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,13 +29,17 @@ public class PostImage {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
 
-    @Column(nullable = false)
-    private String imageUrl;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "emotion_type", nullable = false)
+    private EmotionType emotionType;
 
-    @Column(name = "image_order")
-    private Integer order;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private User user;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
+    @CreatedDate
     private LocalDateTime createdAt;
-} 
+
+
+}

@@ -35,6 +35,9 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     
+    // OpenAI API Client
+    implementation 'com.theokanning.openai-gpt3-java:service:0.18.2'
+    
     // H2 데이터베이스 의존성 추가
     runtimeOnly 'com.h2database:h2'
     

@@ -39,9 +39,9 @@ public class SecurityConfig {
                 .requestMatchers("/auth/oauth/*",
                     "/api/v1/*",
                     "/h2-console/**",
-                    "/api/v1/h2-console/**",
-                        "/api/v1/api/user/*",
-                        "/api/v1/api/posts/*"
+                    "/h2-console/**",
+                    "/api/v1/api/user/*",
+                        "/idtoken"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -59,16 +59,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://localhost:8080",
-            "https://*.ngrok-free.app"  // ngrok 도메인 허용
-        ));
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
-
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
