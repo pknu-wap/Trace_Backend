@@ -1,5 +1,6 @@
 package com.example.trace.gpt.service;
 
+import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.PostVerificationResult;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
@@ -7,7 +8,6 @@ import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.service.OpenAiService;
-import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,8 +28,6 @@ import java.net.URL;
 import java.util.Base64;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,10 +53,71 @@ public class PostVerificationServiceImpl implements PostVerificationService {
         
         if (images == null || images.isEmpty()) {
             // Only text verification is needed
-            return verifyTextOnly(content);
+            PostVerificationResult result = verifyTextOnly(content);
+
+            if (result.isTextResult()) {
+                Verification.builder()
+                        .post(post)
+                        .isTextVerified(true)
+                        .successReason(result.getSuccessReason())
+                        .build();
+                return result;
+
+            } else {
+                Verification.builder()
+                        .post(post)
+                        .isTextVerified(false)
+                        .failureReason(result.getFailureReason())
+                        .build();
+                return result;
+            }
+
         } else {
             // Both text and image verification is needed
-            return verifyTextAndImages(content, images);
+            PostVerificationResult result = verifyTextAndImages(content, images);
+            if(result.isTextResult()&& result.isImageResult()){
+                Verification.builder()
+                        .post(post)
+                        .isTextVerified(true)
+                        .isImageVerified(true)
+                        .successReason(result.getSuccessReason())
+                        .build();
+                return result;
+            } else if (result.isTextResult()&& !result.isImageResult()) {
+                Verification.builder()
+                        .post(post)
+                        .isTextVerified(true)
+                        .isImageVerified(false)
+                        .failureReason(result.getFailureReason())
+                        .build();
+                return result;
+            }
+            else if (!result.isTextResult()&& result.isImageResult()){
+                // 이미지 결과를 강제로 false로 조정
+                PostVerificationResult correctedResult = PostVerificationResult.builder()
+                        .textResult(false)
+                        .imageResult(false)
+                        .failureReason(result.getFailureReason() != null ?
+                                result.getFailureReason() : "gpt의 논리적 오류")
+                        .build();
+
+                Verification.builder()
+                        .post(post)
+                        .isTextVerified(false)
+                        .isImageVerified(false)
+                        .failureReason(correctedResult.getFailureReason())
+                        .build();
+                return correctedResult;
+            }
+            else {
+                Verification.builder()
+                        .post(post)
+                        .isTextVerified(false)
+                        .isImageVerified(false)
+                        .failureReason(result.getFailureReason())
+                        .build();
+                return result;
+            }
         }
     }
     
