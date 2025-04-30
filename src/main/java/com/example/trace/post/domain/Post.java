@@ -1,6 +1,8 @@
 package com.example.trace.post.domain;
 
 import com.example.trace.user.User;
+import com.example.trace.gpt.domain.Verification;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -49,6 +52,12 @@ public class Post {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToOne
+    @JoinColumn(name = "verification_id")
+    private Verification verification;
+
+
     
     public void addImage(PostImage image) {
         this.images.add(image);
