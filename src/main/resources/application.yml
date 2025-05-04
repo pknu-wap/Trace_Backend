@@ -138,3 +138,19 @@ server:
   tomcat:
     basedir: ./temp  # Custom temp directory for Tomcat
 
+# SpringDoc 설정 추가
+springdoc:
+  version: '1.0'
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  show-actuator: false
+  paths-to-match:
+    - /token/**
+    - /auth/**
+
