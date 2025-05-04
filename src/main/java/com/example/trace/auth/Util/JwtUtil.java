@@ -35,9 +35,9 @@ public class JwtUtil {
 
     public JwtUtil(
             // 해당 @Value 값들은 yml에서 설정할 수 있다
-            @Value("${spring.jwt.secret}") String secret,
-            @Value("${spring.jwt.token.access-expiration-time}") Long access,
-            @Value("${spring.jwt.token.refresh-expiration-time}") Long refresh,
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.token.access-expiration-time}") Long access,
+            @Value("${jwt.token.refresh-expiration-time}") Long refresh,
             RedisUtil redis) {
         decodedKey = Base64.getDecoder().decode(secret);
         if(decodedKey.length != 64) {
