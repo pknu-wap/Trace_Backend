@@ -17,12 +17,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.util.AntPathMatcher;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -30,6 +33,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
     private final UserRepository userRepository;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    // 인증 객체가 필요 없는 경로 패턴을 정의
+    private final List<String> excludePathPatterns = List.of(
+            "/auth/oauth/*",
+            "/api/v1/*",
+            "/h2-console/**",
+            "/api/v1/api/user/*",
+            "/idtoken",
+            "/token/refresh",
+            // Swagger UI v3 (OpenAPI)
+            "/v3/api-docs/**",
+            "/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**"
+    );
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        
+        //
+        return excludePathPatterns.stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
 
     @Override
     protected void doFilterInternal(
@@ -51,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // logout 처리된 accessToken
             if (redisUtil.get(accessToken) != null && redisUtil.get(accessToken).equals("logout")) {
-                logger.info("[*] Logout accessToken");
+                log.info("[*] Logout accessToken");
                 filterChain.doFilter(request, response);
                 return;
             }
