@@ -79,14 +79,6 @@ public class JwtUtil {
                 .getTime();
     }
 
-    public Long getKakaoId(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("kakaoid", Long.class);
-    }
 
     // Token 발급
     public String tokenProvider(PrincipalDetails principalDetails, Instant expiration) {
@@ -146,7 +138,7 @@ public class JwtUtil {
     }
 
     // 토큰 유효성 검사
-    public void validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             // 구문 분석 시스템의 시계가 JWT를 생성한 시스템의 시계 오차 고려
             // 약 3분 허용.
@@ -164,14 +156,19 @@ public class JwtUtil {
             if (isExpired) {
                 log.info("만료된 JWT 토큰입니다.");
             }
+            return !isExpired;
         } catch (SecurityException | MalformedJwtException e) {
             log.info("잘못된 JWT 서명입니다.");
+            return false;
         } catch (ExpiredJwtException e) {
             log.info("만료된 JWT 토큰입니다.");
+            return false;
         } catch (UnsupportedJwtException e) {
             log.info("지원되지 않는 JWT 토큰입니다.");
+            return false;
         } catch (IllegalArgumentException e) {
             log.info("JWT 토큰이 잘못되었습니다.");
+            return false;
         }
     }
 
