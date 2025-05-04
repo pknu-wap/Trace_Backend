@@ -39,9 +39,16 @@ public class SecurityConfig {
                 .requestMatchers("/auth/oauth/*",
                     "/api/v1/*",
                     "/h2-console/**",
-                    "/h2-console/**",
                     "/api/v1/api/user/*",
-                        "/idtoken"
+                    "/idtoken",
+                    "/token/refresh",
+                    // Swagger UI v3 (OpenAPI)
+                    "/v3/api-docs/**",
+                    "/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/swagger-resources/**",
+                    "/webjars/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
