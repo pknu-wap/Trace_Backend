@@ -78,4 +78,8 @@ public class TokenService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "토큰 재발급 중 오류가 발생했습니다.");
         }
     }
+
+    public boolean checkTokenExpiration(String token) {
+        return jwtUtil.validateToken(token);
+    }
 }
