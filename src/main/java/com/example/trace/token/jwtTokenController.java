@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "토큰 관리", description = "JWT 토큰 재발급 및 관리 API")
-public class jwtTokenController {
+public class JwtTokenController {
 
     private final TokenService tokenService;
 
@@ -56,5 +56,31 @@ public class jwtTokenController {
         log.info("[*] Access Token 재발급 요청 - refreshToken: {}", refreshToken);
         TokenResponse response = tokenService.reissueAccessToken(refreshToken);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+        summary = "토큰 만료 여부 확인",
+        description = "JWT 토큰의 만료 여부를 확인합니다."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "토큰 상태 확인 성공",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "서버 오류",
+            content = @Content
+        )
+    })
+    @GetMapping("/expiration")
+    public ResponseEntity<String> checkTokenExpiration(
+        @Parameter(description = "확인할 JWT 토큰", required = true) 
+        @RequestParam String token
+    ) {
+        log.info("[*] 토큰 만료 확인 요청 - token: {}", token);
+        boolean isValid = tokenService.checkTokenExpiration(token);
+        return ResponseEntity.ok("Token valid: " + isValid);
     }
 }
