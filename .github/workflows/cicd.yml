@@ -1,9 +1,10 @@
+
 name: CI/CD
 
 on:
   push:
     branches: [ chore/jiseob/#39 ]
-#테스트1
+#테스트
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,11 +41,20 @@ jobs:
 
       - name: Set artifact
         run: |
-          echo 'artifact<<EOF' >> $GITHUB_ENV
-          ls ./build/libs >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+          ARTIFACT_NAME=$(ls ./build/libs | grep -v "plain" | head -n 1)
+          echo "artifact=$ARTIFACT_NAME" >> $GITHUB_ENV
+
+      - name: Debug
+        run: |
+          echo "Artifact: ${{ env.artifact }}"
+          echo "Access key exists: ${{ secrets.AWS_ACCESS_KEY != '' }}"
+          echo "Secret key exists: ${{ secrets.AWS_SECRET_KEY != '' }}"
+
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@v20
+        env:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
