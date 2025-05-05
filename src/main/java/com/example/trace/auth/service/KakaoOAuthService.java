@@ -2,12 +2,12 @@ package com.example.trace.auth.service;
 
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.client.KakaoOAuthClient;
+import com.example.trace.auth.dto.response.AuthResponse;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.*;
 
 import com.example.trace.auth.dto.request.KakaoLoginRequest;
 import com.example.trace.auth.dto.request.KakaoSignupRequest;
-import com.example.trace.auth.dto.response.SignupRequiredResponse;
 import com.example.trace.auth.models.OIDCDecodePayload;
 import com.example.trace.auth.models.OIDCPublicKey;
 import com.example.trace.auth.models.OIDCPublicKeyResponse;
@@ -77,12 +77,12 @@ public class KakaoOAuthService {
                 String accessToken = generateAccessToken(user);
                 String refreshToken = generateRefreshToken(user);
 
-                return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
+                return ResponseEntity.ok(AuthResponse.loginSuccess(accessToken, refreshToken));
             } else {
                 // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
                 String signupToken = UUID.randomUUID().toString();
                 redisTemplate.opsForValue().set("signup:" + signupToken, ProviderId, 1, TimeUnit.HOURS);
-                return ResponseEntity.ok(new SignupRequiredResponse(signupToken,ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
+                return ResponseEntity.ok(AuthResponse.signupRequired(signupToken,ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture()));
             }
 
         } catch (Exception e) {
