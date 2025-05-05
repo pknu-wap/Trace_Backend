@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,17 +15,23 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+  
     @Bean
     public OpenAPI openAPI(@Value("${springdoc.version}") String appVersion) {
         final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()
+
+                .addServersItem(new Server().url(contextPath).description("API 서버"))
                 .info(new Info()
-                        .title("흔적 API")
-                        .description("흔적 애플리케이션 API 문서")
+                        .title("Trace API")
+                        .description("Trace 애플리케이션 API 문서")
                         .version(appVersion)
                         .contact(new Contact()
-                                .name("흔적")
+                                .name("Trace Team")
                                 .url("https://github.com/pknu-wap/Trace_Backend")
                                 .email("wjsbdcindsu@pukyong.ac.kr"))
                         .license(new License()
