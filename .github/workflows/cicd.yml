@@ -4,7 +4,7 @@ name: CI/CD
 on:
   push:
     branches: [ chore/jiseob/#39 ]
-#테스트2
+#테스트5
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,9 +43,6 @@ jobs:
 
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@v20
-        env:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
