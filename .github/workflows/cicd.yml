@@ -4,7 +4,7 @@ name: CI/CD
 on:
   push:
     branches: [ chore/jiseob/#39 ]
-#테스트
+#테스트2
 jobs:
   build:
     runs-on: ubuntu-latest
