@@ -12,11 +12,9 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserDto getUserInfo(UserInfoRequest userInfoRequest) {
-        String providerId = userInfoRequest.getProviderId();
+    public UserDto getUserInfo(String providerId) {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         return new UserDto().fromEntity(user);
     }
 }
