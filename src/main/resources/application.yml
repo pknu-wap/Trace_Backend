@@ -4,8 +4,36 @@ spring:
     name: Trace
   profiles:
     active: local
-  config:
-    import: application-secret.yml
+
+# AWS S3 설정
+cloud:
+  aws:
+    s3:
+      bucket: wap-trace-bucket
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false
+
+
+# SpringDoc 설정 추가
+springdoc:
+  version: '1.0'
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  show-actuator: false
+  paths-to-match:
+    - /token/**
+    - /auth/**
+
+
 
   # OAuth2 클라이언트 설정 - API 키 관리, 외부에 노출되면 안 됨
 oauth2:
@@ -24,11 +52,6 @@ jwt:
     access-expiration-time: 3600000  # 1시간
     refresh-expiration-time: 604800000  # 7일
 
-  # Redis 설정
-data:
-  redis:
-    host: localhost
-    port: 6379
 
   # 로깅 설정
 logging:
@@ -47,6 +70,7 @@ spring:
   config:
     activate:
       on-profile: dev
+
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -85,11 +109,6 @@ server:
   tomcat:
     basedir: ./temp  # Custom temp directory for Tomcat
 
-
-
-
-
-# 커스텀 애플리케이션 설정
 
 ---
 # 개발 환경 설정
@@ -137,20 +156,4 @@ server:
     include-exception: false
   tomcat:
     basedir: ./temp  # Custom temp directory for Tomcat
-
-# SpringDoc 설정 추가
-springdoc:
-  version: '1.0'
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json
-  show-actuator: false
-  paths-to-match:
-    - /token/**
-    - /auth/**
 
