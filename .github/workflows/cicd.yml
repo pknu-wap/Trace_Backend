@@ -30,8 +30,10 @@ jobs:
           utcOffset: "+09:00"
 
       - name: Set artifact
-        run: echo "artifact=$(ls ./build/libs)" >> $GITHUB_ENV
-
+        run: |
+          echo 'artifact<<EOF' >> $GITHUB_ENV
+          ls ./build/libs >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@v20
         with:
