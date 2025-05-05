@@ -15,14 +15,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+
     @Value("${server.servlet.context-path}")
     private String contextPath;
-
+  
     @Bean
     public OpenAPI openAPI(@Value("${springdoc.version}") String appVersion) {
         final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()
+
                 .addServersItem(new Server().url(contextPath).description("API 서버"))
                 .info(new Info()
                         .title("Trace API")
