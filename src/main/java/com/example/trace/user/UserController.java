@@ -1,7 +1,6 @@
 package com.example.trace.user;
 
 import com.example.trace.user.dto.UserDto;
-import com.example.trace.user.dto.UserInfoRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
