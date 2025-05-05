@@ -77,12 +77,12 @@ public class KakaoOAuthService {
                 String accessToken = generateAccessToken(user);
                 String refreshToken = generateRefreshToken(user);
 
-                return ResponseEntity.ok(AuthResponse.loginSuccess(accessToken, refreshToken));
+                return ResponseEntity.status(HttpStatus.OK).body(AuthResponse.loginSuccess(accessToken, refreshToken));
             } else {
                 // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
                 String signupToken = UUID.randomUUID().toString();
                 redisTemplate.opsForValue().set("signup:" + signupToken, ProviderId, 1, TimeUnit.HOURS);
-                return ResponseEntity.ok(AuthResponse.signupRequired(signupToken,ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture()));
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(AuthResponse.signupRequired(signupToken,ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture()));
             }
 
         } catch (Exception e) {
