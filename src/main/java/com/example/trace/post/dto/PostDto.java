@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PostDto {
     private Long id;
+    private String postType;
     private String title;
     private String content;
     private String providerId;
@@ -35,6 +36,7 @@ public class PostDto {
                 
         return PostDto.builder()
                 .id(post.getId())
+                .postType(post.getPostType().name())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .providerId(post.getUser().getProviderId())
