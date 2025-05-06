@@ -2,6 +2,7 @@ package com.example.trace.post.service;
 
 import com.example.trace.gpt.dto.PostVerificationResult;
 import com.example.trace.gpt.service.PostVerificationService;
+import com.example.trace.post.domain.PostType;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
@@ -57,6 +58,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         Post post = Post.builder()
+                .postType(PostType.valueOf(postCreateDto.getPostType()))
                 .title(postCreateDto.getTitle())
                 .content(postCreateDto.getContent())
                 .user(user)
