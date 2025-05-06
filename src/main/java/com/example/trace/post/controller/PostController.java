@@ -29,7 +29,6 @@ public class PostController {
             @Valid @RequestPart("request") PostCreateDto postCreateDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFiles,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        Long userId = principalDetails.getUser().getId();
         String ProviderId = principalDetails.getUser().getProviderId();
 
         if (imageFiles != null && !imageFiles.isEmpty()) {
@@ -38,7 +37,7 @@ public class PostController {
             postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
 
-        PostDto createdPost = postService.createPostWithPictures(postCreateDto, userId, ProviderId);
+        PostDto createdPost = postService.createPostWithPictures(postCreateDto, ProviderId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 

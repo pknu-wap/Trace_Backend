@@ -52,8 +52,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto createPostWithPictures(PostCreateDto postCreateDto, Long userId, String ProviderId) {
-        User user = userRepository.findById(userId)
+    public PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId) {
+        User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         Post post = Post.builder()
