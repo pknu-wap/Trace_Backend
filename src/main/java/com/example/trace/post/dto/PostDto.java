@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class PostDto {
     private Long id;
     private String postType;
+    private Long viewCount;
     private String title;
     private String content;
     private String providerId;
@@ -37,6 +38,7 @@ public class PostDto {
         return PostDto.builder()
                 .id(post.getId())
                 .postType(post.getPostType().name())
+                .viewCount(post.getViewCount())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .providerId(post.getUser().getProviderId())
