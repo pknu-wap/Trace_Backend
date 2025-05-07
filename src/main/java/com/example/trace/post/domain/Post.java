@@ -34,6 +34,9 @@ public class Post {
     @Column(name = "post_type", nullable = false)
     private PostType postType;
 
+    @Column(name = "view_count", nullable = false)
+    private Long viewCount;
+
     @Column(nullable = false)
     private String title;
 
@@ -60,6 +63,8 @@ public class Post {
     @OneToOne
     @JoinColumn(name = "verification_id")
     private Verification verification;
+
+
 
 
 
