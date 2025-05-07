@@ -1,23 +1,24 @@
-package com.example.trace.mission.misson;
+package com.example.trace.mission.mission;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 @Entity
-public class Mission {
+public class MissionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String content;
+    private String title;
 
-    public Mission() { }
+    public MissionEntity() {
+    }
 
-    public Mission(String content) {
-        this.content = content;
+    public MissionEntity(String title) {
+        this.title = title;
     }
 
 
@@ -27,10 +28,10 @@ public class Mission {
     public void setId(Long id) {
         this.id = id;
     }
-    public String getContent() {
-        return content;
+    public String getTitle() {
+        return title;
     }
-    public void setContent(String content) {
-        this.content = content;
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

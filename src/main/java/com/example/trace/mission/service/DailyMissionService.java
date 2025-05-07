@@ -1,58 +1,82 @@
 package com.example.trace.mission.service;
 
-import com.example.trace.mission.dailymission.DailyMissionEntity;
+import com.example.trace.mission.dto.DailyMissionDto;
+import com.example.trace.mission.dto.MissionDto;
+import com.example.trace.mission.mission.DailyMissionEntity;
 import com.example.trace.mission.mission.MissionEntity;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.mission.repository.MissionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
 public class DailyMissionService {
 
-    private final DailyMissionRepository dailyMissionRepository;
     private final MissionRepository missionRepository;
-    private final Random random = new Random();
+    private final DailyMissionRepository dailyMissionRepository;
 
-    public DailyMissionService(DailyMissionRepository dailyMissionRepository, MissionRepository missionRepository) {
-        this.dailyMissionRepository = dailyMissionRepository;
+    public DailyMissionService(MissionRepository missionRepository,
+                               DailyMissionRepository dailyMissionRepository) {
         this.missionRepository = missionRepository;
+        this.dailyMissionRepository = dailyMissionRepository;
     }
 
-    /**
-     * 무작위 미션 할당 또는 재할당
-     */
-    public DailyMission assignRandomMission(String userId) {
-        List<Mission> missions = missionRepository.findAll();
+    // 오늘 할당된 미션을 조회 (없으면 새로 생성)
+    public DailyMissionDto getTodayDailyMission() {
+        LocalDate today = LocalDate.now();
+        DailyMissionEntity dailyMission = dailyMissionRepository.findByDate(today);
+        if (dailyMission == null) {
+            dailyMission = createNewDailyMission(today);
+        }
+        return convertToDto(dailyMission);
+    }
+
+    // 랜덤 미션으로 오늘 미션 변경
+    public DailyMissionDto changeRandomDailyMission() {
+        LocalDate today = LocalDate.now();
+        List<MissionEntity> missions = missionRepository.findAll();
         if (missions.isEmpty()) {
-            throw new RuntimeException("저장된 미션이 없습니다.");
+            throw new IllegalStateException("미션 데이터가 없습니다.");
         }
-        Optional<DailyMission> optionalDailyMission = dailyMissionRepository.findByUserId(userId);
-        DailyMission dailyMission;
-        Mission newMission;
-        if (optionalDailyMission.isPresent()) {
-            dailyMission = optionalDailyMission.get();
-            if (missions.size() > 1) {
-                do {
-                    int index = random.nextInt(missions.size());
-                    newMission = missions.get(index);
-                } while (dailyMission.getMission().getId().equals(newMission.getId()));
-            } else {
-                newMission = missions.get(0);
-            }
-            dailyMission.setMission(newMission);
-        } else {
-            int index = random.nextInt(missions.size());
-            newMission = missions.get(index);
-            dailyMission = new DailyMission(userId, newMission);
+        MissionEntity randomMission = missions.get(new Random().nextInt(missions.size()));
+        DailyMissionEntity dailyMission = dailyMissionRepository.findByDate(today);
+        if (dailyMission == null) {
+            dailyMission = new DailyMissionEntity();
+            dailyMission.setDate(today);
         }
-        return dailyMissionRepository.save(dailyMission);
+        dailyMission.setMission(randomMission);
+        dailyMissionRepository.save(dailyMission);
+        return convertToDto(dailyMission);
     }
 
-    public Optional<DailyMission> getDailyMissionForUser(String userId) {
-        return dailyMissionRepository.findByUserId(userId);
+    // 오늘 날짜로 새로운 일일 미션 생성
+    private DailyMissionEntity createNewDailyMission(LocalDate date) {
+        List<MissionEntity> missions = missionRepository.findAll();
+        if (missions.isEmpty()) {
+            throw new IllegalStateException("미션 데이터가 없습니다.");
+        }
+        MissionEntity randomMission = missions.get(new Random().nextInt(missions.size()));
+        DailyMissionEntity dailyMission = new DailyMissionEntity(randomMission, date);
+        dailyMissionRepository.save(dailyMission);
+        return dailyMission;
+    }
+
+    // 엔티티를 DTO로 변환하는 메서드
+    private DailyMissionDto convertToDto(DailyMissionEntity entity) {
+        DailyMissionDto dto = new DailyMissionDto();
+        dto.setId(entity.getId());
+        dto.setDate(entity.getDate());
+
+        MissionEntity missionEntity = entity.getMission();
+        MissionDto missionDto = new MissionDto();
+        if (missionEntity != null) {
+            missionDto.setId(missionEntity.getId());
+            missionDto.setTitle(missionEntity.getTitle());
+        }
+        dto.setMission(missionDto);
+        return dto;
     }
 }
