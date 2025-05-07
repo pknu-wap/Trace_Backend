@@ -72,4 +72,8 @@ public class Post {
         this.images.add(image);
         image.setPost(this);
     }
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
 }
