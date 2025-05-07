@@ -59,6 +59,7 @@ public class PostServiceImpl implements PostService {
 
         Post post = Post.builder()
                 .postType(PostType.valueOf(postCreateDto.getPostType()))
+                .viewCount(0L)
                 .title(postCreateDto.getTitle())
                 .content(postCreateDto.getContent())
                 .user(user)
@@ -95,6 +96,7 @@ public class PostServiceImpl implements PostService {
     public PostDto getPostById(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        post.incrementViewCount();
         return PostDto.fromEntity(post);
     }
 
