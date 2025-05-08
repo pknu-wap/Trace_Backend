@@ -6,6 +6,10 @@ import com.example.trace.post.dto.PostCreateDto;
 import com.example.trace.post.dto.PostDto;
 import com.example.trace.post.dto.PostUpdateDto;
 import com.example.trace.post.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,11 +24,17 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
+@Tag(name = "게시글 API", description = "게시글 관련 API")
 public class PostController {
 
     private final PostService postService;
 
+
     @PostMapping
+    @Operation(summary = "게시글 생성", description = "게시글 생성 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "게시글 생성 성공"),
+    })
     public ResponseEntity<PostDto> createPostWithPictures(
             @Valid @RequestPart("request") PostCreateDto postCreateDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFiles,
