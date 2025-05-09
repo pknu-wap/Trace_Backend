@@ -62,8 +62,8 @@ public class PostController {
             @PathVariable Long id,
             @Valid @RequestBody PostUpdateDto postUpdateDto,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        Long userId = principalDetails.getUser().getId();
-        PostDto updatedPost = postService.updatePost(id, postUpdateDto, userId);
+        String providerId = principalDetails.getUser().getProviderId();
+        PostDto updatedPost = postService.updatePost(id, postUpdateDto, providerId);
         return ResponseEntity.ok(updatedPost);
     }
 
@@ -72,8 +72,8 @@ public class PostController {
             @PathVariable Long id,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         User user = principalDetails.getUser();
-        Long userId = user.getId();
-        postService.deletePost(id, userId);
+        String providerId = user.getProviderId();
+        postService.deletePost(id, providerId);
         return ResponseEntity.noContent().build(); // 삭제 시엔 204 응답
     }
 } 

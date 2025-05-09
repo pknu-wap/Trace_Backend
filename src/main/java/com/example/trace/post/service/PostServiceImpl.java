@@ -102,11 +102,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, Long userId) {
+    public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, String providerId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getProviderId().equals(providerId)) {
             throw new AccessDeniedException("게시글을 수정할 권한이 없습니다.");
         }
         
@@ -119,11 +119,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deletePost(Long id, Long userId) {
+    public void deletePost(Long id, String providerId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getProviderId().equals(providerId)) {
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
         }
         
