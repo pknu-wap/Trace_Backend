@@ -1,6 +1,7 @@
 package com.example.trace.token;
 
 import com.example.trace.auth.dto.TokenResponse;
+import com.example.trace.token.dto.ExpResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -75,12 +76,13 @@ public class JwtTokenController {
         )
     })
     @GetMapping("/expiration")
-    public ResponseEntity<String> checkTokenExpiration(
+    public ResponseEntity<ExpResponse> checkTokenExpiration(
         @Parameter(description = "확인할 JWT 토큰", required = true) 
         @RequestParam String token
     ) {
         log.info("[*] 토큰 만료 확인 요청 - token: {}", token);
-        boolean isValid = tokenService.checkTokenExpiration(token);
-        return ResponseEntity.ok("Token valid: " + isValid);
+        boolean isExpired = tokenService.checkTokenExpiration(token);
+        ExpResponse response = new ExpResponse(isExpired);
+        return ResponseEntity.ok(response);
     }
 }
