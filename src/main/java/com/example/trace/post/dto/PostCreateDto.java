@@ -1,5 +1,6 @@
 package com.example.trace.post.dto;
 
+import com.example.trace.post.domain.PostType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostCreateDto {
+
+    @NotBlank(message = "게시글 유형을 선택해주세요")
+    private String postType;
     
     @NotBlank(message = "제목을 입력해주세요")
     private String title;

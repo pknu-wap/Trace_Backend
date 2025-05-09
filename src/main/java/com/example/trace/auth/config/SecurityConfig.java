@@ -42,6 +42,7 @@ public class SecurityConfig {
                     "/api/v1/api/user/*",
                     "/idtoken",
                     "/token/refresh",
+                    "/token/expiration",
                     // Swagger UI v3 (OpenAPI)
                     "/v3/api-docs/**",
                     "/api-docs/**",

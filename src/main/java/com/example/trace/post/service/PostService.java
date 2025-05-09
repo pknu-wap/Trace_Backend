@@ -10,13 +10,13 @@ public interface PostService {
     
     PostDto createPost(PostCreateDto postCreateDto,Long userId);
 
-    PostDto createPostWithPictures(PostCreateDto postCreateDto,Long userId, String ProviderId);
+    PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId);
 
     PostDto getPostById(Long id);
 
-    PostDto updatePost(Long id, PostUpdateDto postUpdateDto,Long userId);
+    PostDto updatePost(Long id, PostUpdateDto postUpdateDto,String providerId);
     
-    void deletePost(Long id, Long userId);
+    void deletePost(Long id, String providerId);
     
     PostVerificationResult verifyPost(Long postId);
 } 

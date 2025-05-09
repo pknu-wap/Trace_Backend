@@ -30,6 +30,13 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "post_type", nullable = false)
+    private PostType postType;
+
+    @Column(name = "view_count", nullable = false)
+    private Long viewCount;
+
     @Column(nullable = false)
     private String title;
 
@@ -37,7 +44,7 @@ public class Post {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "provider_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
@@ -59,8 +66,14 @@ public class Post {
 
 
 
+
+
     public void addImage(PostImage image) {
         this.images.add(image);
         image.setPost(this);
+    }
+
+    public void incrementViewCount() {
+        this.viewCount++;
     }
 }

@@ -2,6 +2,7 @@ package com.example.trace.post.service;
 
 import com.example.trace.gpt.dto.PostVerificationResult;
 import com.example.trace.gpt.service.PostVerificationService;
+import com.example.trace.post.domain.PostType;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
@@ -52,11 +53,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto createPostWithPictures(PostCreateDto postCreateDto, Long userId, String ProviderId) {
-        User user = userRepository.findById(userId)
+    public PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId) {
+        User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         Post post = Post.builder()
+                .postType(PostType.valueOf(postCreateDto.getPostType()))
+                .viewCount(0L)
                 .title(postCreateDto.getTitle())
                 .content(postCreateDto.getContent())
                 .user(user)
@@ -93,16 +96,17 @@ public class PostServiceImpl implements PostService {
     public PostDto getPostById(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        post.incrementViewCount();
         return PostDto.fromEntity(post);
     }
 
     @Override
     @Transactional
-    public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, Long userId) {
+    public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, String providerId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getProviderId().equals(providerId)) {
             throw new AccessDeniedException("게시글을 수정할 권한이 없습니다.");
         }
         
@@ -115,11 +119,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deletePost(Long id, Long userId) {
+    public void deletePost(Long id, String providerId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getProviderId().equals(providerId)) {
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
         }
         

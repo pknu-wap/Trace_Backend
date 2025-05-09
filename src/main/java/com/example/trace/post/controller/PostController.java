@@ -6,6 +6,10 @@ import com.example.trace.post.dto.PostCreateDto;
 import com.example.trace.post.dto.PostDto;
 import com.example.trace.post.dto.PostUpdateDto;
 import com.example.trace.post.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,16 +24,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
+@Tag(name = "게시글 API", description = "게시글 관련 API")
 public class PostController {
 
     private final PostService postService;
 
+
     @PostMapping
+    @Operation(summary = "게시글 생성", description = "게시글 생성 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "게시글 생성 성공"),
+    })
     public ResponseEntity<PostDto> createPostWithPictures(
             @Valid @RequestPart("request") PostCreateDto postCreateDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFiles,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        Long userId = principalDetails.getUser().getId();
         String ProviderId = principalDetails.getUser().getProviderId();
 
         if (imageFiles != null && !imageFiles.isEmpty()) {
@@ -38,7 +47,7 @@ public class PostController {
             postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
 
-        PostDto createdPost = postService.createPostWithPictures(postCreateDto, userId, ProviderId);
+        PostDto createdPost = postService.createPostWithPictures(postCreateDto, ProviderId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
@@ -53,8 +62,8 @@ public class PostController {
             @PathVariable Long id,
             @Valid @RequestBody PostUpdateDto postUpdateDto,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        Long userId = principalDetails.getUser().getId();
-        PostDto updatedPost = postService.updatePost(id, postUpdateDto, userId);
+        String providerId = principalDetails.getUser().getProviderId();
+        PostDto updatedPost = postService.updatePost(id, postUpdateDto, providerId);
         return ResponseEntity.ok(updatedPost);
     }
 
@@ -63,8 +72,8 @@ public class PostController {
             @PathVariable Long id,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         User user = principalDetails.getUser();
-        Long userId = user.getId();
-        postService.deletePost(id, userId);
+        String providerId = user.getProviderId();
+        postService.deletePost(id, providerId);
         return ResponseEntity.noContent().build(); // 삭제 시엔 204 응답
     }
 } 

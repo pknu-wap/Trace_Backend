@@ -18,9 +18,11 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PostDto {
     private Long id;
+    private String postType;
+    private Long viewCount;
     private String title;
     private String content;
-    private Long userId;
+    private String providerId;
     private String nickname;
     private List<String> imageUrls;
     private LocalDateTime createdAt;
@@ -35,9 +37,11 @@ public class PostDto {
                 
         return PostDto.builder()
                 .id(post.getId())
+                .postType(post.getPostType().name())
+                .viewCount(post.getViewCount())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .userId(post.getUser().getId())
+                .providerId(post.getUser().getProviderId())
                 .nickname(post.getUser().getNickname())
                 .imageUrls(imageUrls)
                 .createdAt(post.getCreatedAt())
