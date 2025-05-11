@@ -2,6 +2,8 @@ package com.example.trace.auth.Util;
 
 import com.example.trace.auth.dto.PrincipalDetails;
 
+import com.example.trace.global.errorcode.TokenErrorCode;
+import com.example.trace.global.execption.TokenExecption;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ExpiredJwtException;
 
@@ -25,14 +27,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class JwtUtil {
-
     private final SecretKey secretKey;
     private final Long accessExpMs;
     private final Long refreshExpMs;
     private final RedisUtil redisUtil;
     byte[] decodedKey;
-
-
     public JwtUtil(
             // 해당 @Value 값들은 yml에서 설정할 수 있다
             @Value("${jwt.secret}") String secret,
@@ -120,7 +119,6 @@ public class JwtUtil {
                 refreshExpMs,
                 TimeUnit.MILLISECONDS
         );
-
         return refreshToken;
     }
 
@@ -136,46 +134,39 @@ public class JwtUtil {
 
         return authorization.split(" ")[1];
     }
-
     // 토큰 유효성 검사
-    public boolean validateToken(String token) {
-        try {
-            // 구문 분석 시스템의 시계가 JWT를 생성한 시스템의 시계 오차 고려
-            // 약 3분 허용.
-            long seconds = 3 *60;
-            boolean isExpired = Jwts
+    public void validateToken(String token) {
+        try{
+            Jwts
                     .parser()
-                    .clockSkewSeconds(seconds)
                     .verifyWith(secretKey)
                     .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .getExpiration()
-                    .before(new Date());
-            log.info("[*] Authorization with Token");
-            if (isExpired) {
-                log.info("만료된 JWT 토큰입니다.");
-            }
-            return !isExpired;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
-            return false;
+                    .parseSignedClaims(token);
+            log.info("토큰 유효성 검사 중..");
+        } catch (SecurityException | MalformedJwtException | SignatureException e) {
+            throw new TokenExecption(TokenErrorCode.WRONG_SIGNATURE);
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-            return false;
+            throw new TokenExecption(TokenErrorCode.EXPIRED_JWT_TOKEN);
         } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
-            return false;
+            throw new TokenExecption(TokenErrorCode.UNSUPPORTED_JWT_TOKEN);
         } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
-            return false;
+            throw new TokenExecption(TokenErrorCode.ILLEGAL_ARGUMENT);
         }
     }
 
-
-
-
-
-
+    public boolean checkTokenExpiration(String token) {
+        validateToken(token);
+        long seconds = 3 *60;
+        boolean isExpired = Jwts
+                .parser()
+                .clockSkewSeconds(seconds)
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration()
+                .before(new Date());
+        return isExpired;
+    }
 
 }
