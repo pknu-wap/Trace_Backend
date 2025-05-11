@@ -4,5 +4,5 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class ExpResponse {
-    boolean isExpired;
+    private boolean isExpired;
 }
