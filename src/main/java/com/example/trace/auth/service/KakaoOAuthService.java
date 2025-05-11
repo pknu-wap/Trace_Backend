@@ -2,6 +2,10 @@ package com.example.trace.auth.service;
 
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.client.KakaoOAuthClient;
+import com.example.trace.global.errorcode.AuthErrorCode;
+import com.example.trace.global.errorcode.SignUpErrorCode;
+import com.example.trace.global.execption.AuthExecption;
+import com.example.trace.global.execption.SignUpExecption;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.*;
 
@@ -19,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,19 +56,19 @@ public class KakaoOAuthService {
             OIDCPublicKey publicKey = keyResponse.getKeys().stream()
                     .filter(key -> kid.equals(key.getKid()))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("No matching public key found"));
+                    .orElseThrow(() -> new AuthExecption(AuthErrorCode.PUBLIC_KEY_NOT_FOUND));
 
             // Verify signature
             if (oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token signature");
+                throw new AuthExecption(AuthErrorCode.INVALID_ID_TOKEN_SIGNATURE);
             }
 
             // Decode and verify payload
             OIDCDecodePayload payload = oidcProvider.verifyAndDecodeToken(request.getIdToken(), kakaoClientId);
-            
+
             // 2. Extract user ID from token payload
             String ProviderId = payload.getSub();
-            
+
             // 3. Check if user exists
             Optional<User> userOpt = userRepository.findByProviderIdAndProvider(ProviderId, "KAKAO");
 
@@ -87,7 +90,7 @@ public class KakaoOAuthService {
 
         } catch (Exception e) {
             log.error("Error processing login", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed: " + e.getMessage());
+            throw new AuthExecption(AuthErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -98,7 +101,7 @@ public class KakaoOAuthService {
             String redisKey = "signup:" + request.getSignupToken();
             String storedProviderId = redisTemplate.opsForValue().get(redisKey);
             if (storedProviderId == null || !storedProviderId.equals(request.getProviderId())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired signup session");
+                throw new SignUpExecption(SignUpErrorCode.NOT_MATCHED_PROVIDER_ID);
             }
 
             // 회원 가입 요청시, 사진 업로드를 했다면, s3에 저장
@@ -128,7 +131,7 @@ public class KakaoOAuthService {
             return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
         } catch (Exception e) {
             log.error("Error processing signup", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Signup failed: " + e.getMessage());
+            throw new SignUpExecption(SignUpErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
