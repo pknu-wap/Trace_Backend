@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,7 +86,7 @@ public class KakaoOAuthService {
                 // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
                 String signupToken = UUID.randomUUID().toString();
                 redisTemplate.opsForValue().set("signup:" + signupToken, ProviderId, 1, TimeUnit.HOURS);
-                return ResponseEntity.ok(new SignupRequiredResponse(signupToken,ProviderId,payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(new SignupRequiredResponse(signupToken, ProviderId, payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
             }
 
         } catch (Exception e) {
