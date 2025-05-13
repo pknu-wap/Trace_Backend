@@ -44,7 +44,7 @@ public class Post {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
@@ -65,9 +65,6 @@ public class Post {
     private Verification verification;
 
 
-
-
-
     public void addImage(PostImage image) {
         this.images.add(image);
         image.setPost(this);
@@ -75,5 +72,10 @@ public class Post {
 
     public void incrementViewCount() {
         this.viewCount++;
+    }
+
+    public void editPost(String title, String content) {
+        this.title = title;
+        this.content = content;
     }
 }
