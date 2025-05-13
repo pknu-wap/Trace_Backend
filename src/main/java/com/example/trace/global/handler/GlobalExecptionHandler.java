@@ -1,10 +1,7 @@
 package com.example.trace.global.handler;
 
 import com.example.trace.global.errorcode.*;
-import com.example.trace.global.execption.AuthExecption;
-import com.example.trace.global.execption.FileException;
-import com.example.trace.global.execption.SignUpExecption;
-import com.example.trace.global.execption.TokenExecption;
+import com.example.trace.global.execption.*;
 import com.example.trace.global.response.ErrorResponse;
 import com.example.trace.global.response.TokenErrorResponse;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +35,12 @@ public class GlobalExecptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(fileErrorCode);
     }
 
+    @ExceptionHandler(PostExecption.class)
+    public ResponseEntity<Object> handleAuthException(PostExecption e) {
+        PostErrorCode postErrorCode = e.getPostErrorCode();
+        return handleExceptionInternal(postErrorCode);
+    }
+
     private ResponseEntity<Object> handleExceptionInternal(TokenErrorCode tokenErrorCode) {
         return ResponseEntity.status(tokenErrorCode.getHttpStatus())
                 .body(makeTokenErrorResponse(tokenErrorCode));
@@ -56,6 +59,11 @@ public class GlobalExecptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> handleExceptionInternal(FileErrorCode fileErrorCode) {
         return ResponseEntity.status(fileErrorCode.getHttpStatus())
                 .body(makeErrorResponse(fileErrorCode));
+    }
+
+    private ResponseEntity<Object> handleExceptionInternal(PostErrorCode postErrorCode) {
+        return ResponseEntity.status(postErrorCode.getHttpStatus())
+                .body(makeErrorResponse(postErrorCode));
     }
 
     private TokenErrorResponse makeTokenErrorResponse(TokenErrorCode tokenErrorCode) {
