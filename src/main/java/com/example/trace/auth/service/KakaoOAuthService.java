@@ -106,7 +106,14 @@ public class KakaoOAuthService {
 
             // 회원 가입 요청시, 사진 업로드를 했다면, s3에 저장
             if(request.getProfileImageFile() != null) {
-                request.setProfileImageUrl(s3UploadService.saveFile(request.getProfileImageFile(), FileType.PROFILE,request.getProviderId() ));
+                try{
+                    // 파일 유효성 검사
+                    request.setProfileImageUrl(s3UploadService.saveFile(request.getProfileImageFile(), FileType.PROFILE,request.getProviderId() ));
+                }
+                catch (Exception e) {
+                    log.error("Error uploading profile image", e);
+                    throw new SignUpExecption(SignUpErrorCode.FILE_UPLOAD_ERROR);
+                }
             }
 
             // user 생성
