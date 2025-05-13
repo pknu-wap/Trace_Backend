@@ -1,10 +1,8 @@
 package com.example.trace.global.handler;
 
-import com.example.trace.global.errorcode.AuthErrorCode;
-import com.example.trace.global.errorcode.ErrorCode;
-import com.example.trace.global.errorcode.SignUpErrorCode;
-import com.example.trace.global.errorcode.TokenErrorCode;
+import com.example.trace.global.errorcode.*;
 import com.example.trace.global.execption.AuthExecption;
+import com.example.trace.global.execption.FileException;
 import com.example.trace.global.execption.SignUpExecption;
 import com.example.trace.global.execption.TokenExecption;
 import com.example.trace.global.response.ErrorResponse;
@@ -34,7 +32,11 @@ public class GlobalExecptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(signUpErrorCode);
     }
 
-
+    @ExceptionHandler(FileException.class)
+    public ResponseEntity<Object> handleAuthException(FileException e) {
+        FileErrorCode fileErrorCode = e.getFileErrorCode();
+        return handleExceptionInternal(fileErrorCode);
+    }
 
     private ResponseEntity<Object> handleExceptionInternal(TokenErrorCode tokenErrorCode) {
         return ResponseEntity.status(tokenErrorCode.getHttpStatus())
@@ -50,6 +52,12 @@ public class GlobalExecptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(signUpErrorCode.getHttpStatus())
                 .body(makeErrorResponse(signUpErrorCode));
     }
+
+    private ResponseEntity<Object> handleExceptionInternal(FileErrorCode fileErrorCode) {
+        return ResponseEntity.status(fileErrorCode.getHttpStatus())
+                .body(makeErrorResponse(fileErrorCode));
+    }
+
     private TokenErrorResponse makeTokenErrorResponse(TokenErrorCode tokenErrorCode) {
         return TokenErrorResponse.builder()
                 .code(tokenErrorCode.name())
