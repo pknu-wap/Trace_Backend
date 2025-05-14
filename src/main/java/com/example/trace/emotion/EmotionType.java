@@ -1,11 +1,11 @@
 package com.example.trace.emotion;
 
 public enum EmotionType {
-    WARM("따뜻해요"),
+    HEARTWARMING("따뜻해요"),
     GRATEFUL("고마워요"),
-    AWESOME("멋져요"),
-    TOUCHED("감동이에요"),
-    LIKE("좋아요");
+    IMPRESSIVE("멋져요"),
+    TOUCHING("감동이에요"),
+    LIKABLE("좋아요");
 
     private final String description;
 
