@@ -16,6 +16,7 @@ import com.example.trace.post.dto.PostDto;
 import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -65,7 +67,7 @@ public class PostServiceImpl implements PostService {
                 .content(postCreateDto.getContent())
                 .user(user)
                 .build();
-        
+
         Post savedPost = postRepository.save(post);
 
         List<MultipartFile> imageFiles = postCreateDto.getImageFiles();
@@ -74,6 +76,7 @@ public class PostServiceImpl implements PostService {
             
             for (int i = 0; i < imagesToProcess; i++) {
                 MultipartFile file = imageFiles.get(i);
+                log.info("Processing image file: {}", file.getOriginalFilename());
                 try {
                     String imageUrl = s3UploadService.saveFile(file, FileType.POST, ProviderId);
                     PostImage postImage = PostImage.builder()
@@ -129,7 +132,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PostVerificationResult verifyPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
