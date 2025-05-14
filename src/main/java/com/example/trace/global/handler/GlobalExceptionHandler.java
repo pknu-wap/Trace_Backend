@@ -1,7 +1,7 @@
 package com.example.trace.global.handler;
 
 import com.example.trace.global.errorcode.*;
-import com.example.trace.global.execption.*;
+import com.example.trace.global.exception.*;
 import com.example.trace.global.response.ErrorResponse;
 import com.example.trace.global.response.TokenErrorResponse;
 import org.springframework.http.ResponseEntity;
@@ -10,21 +10,21 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
-public class GlobalExecptionHandler extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(TokenExecption.class)
-    public ResponseEntity<Object> handleTokenException(TokenExecption e) {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<Object> handleTokenException(TokenException e) {
         TokenErrorCode tokenErrorCode = e.getTokenErrorCode();
         return handleExceptionInternal(tokenErrorCode);
     }
 
-    @ExceptionHandler(AuthExecption.class)
-    public ResponseEntity<Object> handleAuthException(AuthExecption e) {
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<Object> handleAuthException(AuthException e) {
         AuthErrorCode authErrorCode = e.getAuthErrorCode();
         return handleExceptionInternal(authErrorCode);
     }
 
-    @ExceptionHandler(SignUpExecption.class)
-    public ResponseEntity<Object> handleSignUpException(SignUpExecption e) {
+    @ExceptionHandler(SignUpException.class)
+    public ResponseEntity<Object> handleSignUpException(SignUpException e) {
         SignUpErrorCode signUpErrorCode = e.getSignUpErrorCode();
         return handleExceptionInternal(signUpErrorCode);
     }
@@ -35,8 +35,8 @@ public class GlobalExecptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(fileErrorCode);
     }
 
-    @ExceptionHandler(PostExecption.class)
-    public ResponseEntity<Object> handleAuthException(PostExecption e) {
+    @ExceptionHandler(PostException.class)
+    public ResponseEntity<Object> handleAuthException(PostException e) {
         PostErrorCode postErrorCode = e.getPostErrorCode();
         return handleExceptionInternal(postErrorCode);
     }
