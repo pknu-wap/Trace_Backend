@@ -1,7 +1,7 @@
 package com.example.trace.post.dto;
 
-import com.example.trace.post.domain.PostType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,15 +15,19 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "게시글 작성 요청 DTO")
 public class PostCreateDto {
 
     @NotBlank(message = "게시글 유형을 선택해주세요")
+    @Schema(description = "게시글 유형", example = "ALL")
     private String postType;
     
     @NotBlank(message = "제목을 입력해주세요")
+    @Schema(description = "게시글 제목", example = "게시글 제목")
     private String title;
+    @NotBlank(message = "내용을 입력해주세요")
+    @Schema(description = "게시글 내용", example = "게시글 내용")
     private String content;
-    private String imageUrl;
 
     @JsonIgnore
     private MultipartFile imageFile;

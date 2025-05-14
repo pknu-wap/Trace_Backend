@@ -2,6 +2,7 @@ package com.example.trace.post.dto;
 
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,15 +18,34 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostDto {
+    @Schema(description = "게시글 ID", example = "1")
     private Long id;
+
+    @Schema(description = "게시글 타입", example = "ALL")
     private String postType;
+
+    @Schema(description = "조회수", example = "100")
     private Long viewCount;
+
+    @Schema(description = "게시글 제목", example = "게시글 제목")
     private String title;
+
+    @Schema(description = "게시글 내용", example = "게시글 내용")
     private String content;
+
+    @Schema(description = "작성자 providerID", example = "41674...")
     private String providerId;
+
+    @Schema(description = "작성자 닉네임", example = "닉네임")
     private String nickname;
+
+    @Schema(description = "게시글 이미지 URL", example = "[\"image1.jpg\", \"image2.jpg\"]")
     private List<String> imageUrls;
+
+    @Schema(description = "게시글 작성일", example = "2023-10-01T12:00:00")
     private LocalDateTime createdAt;
+
+    @Schema(description = "게시글 수정일", example = "2023-10-01T12:00:00")
     private LocalDateTime updatedAt;
     
     public static PostDto fromEntity(Post post) {
