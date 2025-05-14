@@ -13,6 +13,7 @@ public enum TokenErrorCode implements ErrorCode {
     ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST,false,false, "JWT 토큰이 아닙니다."),
     NOT_FOUND_REFRESH_TOKEN(HttpStatus.NOT_FOUND,false,true, "리프레시 토큰이 존재하지 않거나, 일치하지 않습니다. "),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND,false,true, "사용자가 존재하지 않습니다"),
+    UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,false,true, "알 수 없는 오류입니다."),
     ;
 
     private final HttpStatus httpStatus;
