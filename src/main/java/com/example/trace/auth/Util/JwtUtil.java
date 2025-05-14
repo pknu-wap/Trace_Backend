@@ -3,7 +3,7 @@ package com.example.trace.auth.Util;
 import com.example.trace.auth.dto.PrincipalDetails;
 
 import com.example.trace.global.errorcode.TokenErrorCode;
-import com.example.trace.global.execption.TokenExecption;
+import com.example.trace.global.exception.TokenException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ExpiredJwtException;
 
@@ -144,13 +144,16 @@ public class JwtUtil {
                     .parseSignedClaims(token);
             log.info("토큰 유효성 검사 중..");
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
-            throw new TokenExecption(TokenErrorCode.WRONG_SIGNATURE);
+            throw new TokenException(TokenErrorCode.WRONG_SIGNATURE);
         } catch (ExpiredJwtException e) {
-            throw new TokenExecption(TokenErrorCode.EXPIRED_JWT_TOKEN);
+            throw new TokenException(TokenErrorCode.EXPIRED_JWT_TOKEN);
         } catch (UnsupportedJwtException e) {
-            throw new TokenExecption(TokenErrorCode.UNSUPPORTED_JWT_TOKEN);
+            throw new TokenException(TokenErrorCode.UNSUPPORTED_JWT_TOKEN);
         } catch (IllegalArgumentException e) {
-            throw new TokenExecption(TokenErrorCode.ILLEGAL_ARGUMENT);
+            throw new TokenException(TokenErrorCode.ILLEGAL_ARGUMENT);
+        } catch (Exception e) {
+            log.error("토큰 유효성 검사 중 알 수 없는 오류 발생: {}", e.getMessage());
+            throw new TokenException(TokenErrorCode.UNKNOWN_ERROR);
         }
     }
 
