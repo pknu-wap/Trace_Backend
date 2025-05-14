@@ -3,13 +3,13 @@ package com.example.trace.file;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.example.trace.global.errorcode.FileErrorCode;
+import com.example.trace.global.exception.FileException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Set;
@@ -54,14 +54,12 @@ public class S3UploadService {
         String extension = FilenameUtils.getExtension(file.getOriginalFilename()).toLowerCase();
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
 
-            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "허용되지 않는 파일 형식"); // 상세한 예외처리는 나중에 구현
+            throw new FileException(FileErrorCode.UNSUPPORTED_MEDIA_FORMAT);
         }
 
         // 파일 크기 검증 (최대 5MB)
         if (file.getSize() > 5 * 1024 * 1024) {
-            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "파일 크기 초과"); // 상세한 예외처리는 나중에 구현
+            throw new FileException(FileErrorCode.FILE_SIZE_EXCEEDED);
         }
     }
 

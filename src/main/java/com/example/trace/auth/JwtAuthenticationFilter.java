@@ -37,8 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 인증 객체가 필요 없는 경로 패턴을 정의
     private final List<String> excludePathPatterns = List.of(
-            "/auth/oauth/*",
-            "/api/v1/*",
+            "/auth/oauth/**",
             "/h2-console/**",
             "/api/v1/api/user/*",
             "/idtoken",
@@ -49,7 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/swagger-resources/**",
-            "/webjars/**"
+            "/webjars/**",
+            "/error"
     );
 
     @Override

@@ -32,6 +32,9 @@ springdoc:
   paths-to-match:
     - /token/**
     - /auth/**
+    - /posts/**
+    - /emotion/**
+    - /user/**
 
 
 

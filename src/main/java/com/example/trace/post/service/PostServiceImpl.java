@@ -1,5 +1,7 @@
 package com.example.trace.post.service;
 
+import com.example.trace.global.errorcode.PostErrorCode;
+import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.dto.PostVerificationResult;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
@@ -12,10 +14,8 @@ import com.example.trace.post.domain.PostImage;
 import com.example.trace.post.dto.PostCreateDto;
 import com.example.trace.post.dto.PostDto;
 import com.example.trace.auth.repository.UserRepository;
-import com.example.trace.post.repository.PostImageRepository;
 import com.example.trace.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +38,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto createPost(PostCreateDto postCreateDto,Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
         Post post = Post.builder()
                 .title(postCreateDto.getTitle())
@@ -55,7 +55,8 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId) {
         User user = userRepository.findByProviderId(ProviderId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
+
 
         Post post = Post.builder()
                 .postType(PostType.valueOf(postCreateDto.getPostType()))
@@ -75,7 +76,6 @@ public class PostServiceImpl implements PostService {
                 MultipartFile file = imageFiles.get(i);
                 try {
                     String imageUrl = s3UploadService.saveFile(file, FileType.POST, ProviderId);
-                    
                     PostImage postImage = PostImage.builder()
                             .post(savedPost)
                             .imageUrl(imageUrl)
@@ -83,7 +83,7 @@ public class PostServiceImpl implements PostService {
                             .build();
                     savedPost.addImage(postImage);
                 } catch (Exception e) {
-                    throw new RuntimeException("파일 업로드에 실패했습니다: " + e.getMessage());
+                    throw new PostException(PostErrorCode.POST_IMAGE_UPLOAD_FAILED);
                 }
             }
         }
@@ -95,7 +95,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto getPostById(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
         post.incrementViewCount();
         return PostDto.fromEntity(post);
     }
@@ -104,14 +104,13 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, String providerId) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
         
         if (!post.getUser().getProviderId().equals(providerId)) {
-            throw new AccessDeniedException("게시글을 수정할 권한이 없습니다.");
+            throw new PostException(PostErrorCode.POST_UPDATE_FORBIDDEN);
         }
         
-        post.setTitle(postUpdateDto.getTitle());
-        post.setContent(postUpdateDto.getContent());
+        post.editPost(postUpdateDto.getTitle(),postUpdateDto.getContent());
 
         Post updatedPost = postRepository.save(post);
         return PostDto.fromEntity(updatedPost);
@@ -121,12 +120,11 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deletePost(Long id, String providerId) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
         
         if (!post.getUser().getProviderId().equals(providerId)) {
-            throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+            throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
         }
-        
         postRepository.delete(post);
     }
 
@@ -134,7 +132,7 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostVerificationResult verifyPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
         return postVerificationService.verifyPost(post);
     }

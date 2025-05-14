@@ -1,14 +1,16 @@
 package com.example.trace.auth.provider;
 
-import com.example.trace.auth.client.KakaoOAuthClient;
 import com.example.trace.auth.models.OIDCDecodePayload;
 import com.example.trace.auth.models.OIDCPublicKey;
+import com.example.trace.global.errorcode.AuthErrorCode;
+import com.example.trace.global.exception.AuthException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -22,63 +24,80 @@ import java.util.Base64;
 public class KakaoOIDCProvider implements OIDCProvider {
     private static final String ISSUER = "https://kauth.kakao.com";
 
-    private final KakaoOAuthClient kakaoOAuthClient;
+    private String decodeBase64(String encoded) {
+        try {
+            return new String(Base64.getUrlDecoder().decode(encoded));
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid Base64 encoding in token header", e);
+            throw new AuthException(AuthErrorCode.DECODE_ERROR);
+        }
+    }
+
+    private JsonNode parseJson(String json) {
+        try {
+            return new ObjectMapper().readTree(json);
+        } catch (IOException e) {
+            log.error("Invalid JSON in token header", e);
+            throw new AuthException(AuthErrorCode.PARSE_ERROR);
+        }
+    }
+
+    private OIDCDecodePayload parsePayload(String payloadJson) {
+        try {
+            return new ObjectMapper().readValue(payloadJson, OIDCDecodePayload.class);
+        } catch (IOException e) {
+            log.error("Invalid JSON in token payload", e);
+            throw new AuthException(AuthErrorCode.PARSE_ERROR);
+        }
+    }
+
+
 
     @Override
     public String getKidFromUnsignedTokenHeader(String token) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length < 2) {
-                throw new IllegalArgumentException("Invalid token format");
-            }
-
-            String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]));
-            JsonNode headerNode = new ObjectMapper().readTree(headerJson);
-
-            if (!headerNode.has("kid")) {
-                throw new IllegalArgumentException("No kid found in token header");
-            }
-
-            return headerNode.get("kid").asText();
-        } catch (Exception e) {
-            log.error("Error extracting kid from token header", e);
-            throw new IllegalArgumentException("Failed to parse token header", e);
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) {
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_FORMAT);
         }
+
+        String headerJson = decodeBase64(parts[0]);
+        JsonNode headerNode = parseJson(headerJson);
+
+        if (!headerNode.has("kid")) {
+            throw new AuthException(AuthErrorCode.KID_NOT_FOUND);
+        }
+
+        return headerNode.get("kid").asText();
     }
 
     @Override
     public OIDCDecodePayload verifyAndDecodeToken(String token, String clientId) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length < 2) {
-                throw new IllegalArgumentException("Invalid token format");
-            }
 
-            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
-            OIDCDecodePayload payload = new ObjectMapper().readValue(payloadJson, OIDCDecodePayload.class);
-
-            // Verify issuer
-            if (!ISSUER.equals(payload.getIss())) {
-                throw new IllegalArgumentException("Invalid token issuer");
-            }
-
-            // Verify audience
-            if (!clientId.equals(payload.getAud())) {
-                throw new IllegalArgumentException("Invalid token audience");
-            }
-
-            // Verify expiration
-            if (payload.getExp() < System.currentTimeMillis() / 1000) {
-                throw new IllegalArgumentException("Token has expired");
-            }
-
-            // We don't verify nonce here as it would have been provided by the client initially
-
-            return payload;
-        } catch (Exception e) {
-            log.error("Error decoding token payload", e);
-            throw new IllegalArgumentException("Failed to decode or verify token", e);
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) {
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_FORMAT);
         }
+
+        String payloadJson = decodeBase64(parts[1]);
+        OIDCDecodePayload payload = parsePayload(payloadJson);
+
+        // Verify issuer
+        if (!ISSUER.equals(payload.getIss())) {
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_ISSUER);
+        }
+
+        // Verify audience
+        if (!clientId.equals(payload.getAud())) {
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_AUDIENCE);
+        }
+
+        // Verify expiration
+        if (payload.getExp() < System.currentTimeMillis() / 1000) {
+            throw new AuthException(AuthErrorCode.EXPIRED_ID_TOKEN);
+        }
+
+        return payload;
+
     }
 
     @Override

@@ -37,19 +37,18 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/oauth/*",
-                    "/api/v1/*",
                     "/h2-console/**",
                     "/api/v1/api/user/*",
                     "/idtoken",
                     "/token/refresh",
                     "/token/expiration",
-                    // Swagger UI v3 (OpenAPI)
                     "/v3/api-docs/**",
                     "/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/swagger-resources/**",
-                    "/webjars/**"
+                    "/webjars/**",
+                        "/error/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
