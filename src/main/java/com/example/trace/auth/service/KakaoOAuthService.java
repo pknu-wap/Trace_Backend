@@ -4,8 +4,8 @@ import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.client.KakaoOAuthClient;
 import com.example.trace.global.errorcode.AuthErrorCode;
 import com.example.trace.global.errorcode.SignUpErrorCode;
-import com.example.trace.global.execption.AuthExecption;
-import com.example.trace.global.execption.SignUpExecption;
+import com.example.trace.global.exception.AuthException;
+import com.example.trace.global.exception.SignUpException;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.*;
 
@@ -48,51 +48,46 @@ public class KakaoOAuthService {
 
 
     public ResponseEntity<?> processLogin(KakaoLoginRequest request) {
-        try {
-            // 1. Validate ID token
-            OIDCPublicKeyResponse keyResponse = kakaoOAuthClient.getOIDCPublicKey();
-            String kid = oidcProvider.getKidFromUnsignedTokenHeader(request.getIdToken());
+        // 1. Validate ID token
+        OIDCPublicKeyResponse keyResponse = kakaoOAuthClient.getOIDCPublicKey();
+        String kid = oidcProvider.getKidFromUnsignedTokenHeader(request.getIdToken());
 
-            // Find the matching key
-            OIDCPublicKey publicKey = keyResponse.getKeys().stream()
-                    .filter(key -> kid.equals(key.getKid()))
-                    .findFirst()
-                    .orElseThrow(() -> new AuthExecption(AuthErrorCode.PUBLIC_KEY_NOT_FOUND));
+        // Find the matching key
+        OIDCPublicKey publicKey = keyResponse.getKeys().stream()
+                .filter(key -> kid.equals(key.getKid()))
+                .findFirst()
+                .orElseThrow(() -> new AuthException(AuthErrorCode.PUBLIC_KEY_NOT_FOUND));
 
-            // Verify signature
-            if (oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
-                throw new AuthExecption(AuthErrorCode.INVALID_ID_TOKEN_SIGNATURE);
-            }
-
-            // Decode and verify payload
-            OIDCDecodePayload payload = oidcProvider.verifyAndDecodeToken(request.getIdToken(), kakaoClientId);
-
-            // 2. Extract user ID from token payload
-            String ProviderId = payload.getSub();
-
-            // 3. Check if user exists
-            Optional<User> userOpt = userRepository.findByProviderIdAndProvider(ProviderId, "KAKAO");
-
-            if (userOpt.isPresent()) {
-                // User exists - login process
-                User user = userOpt.get();
-
-                // Generate JWT tokens for your app
-                String accessToken = generateAccessToken(user);
-                String refreshToken = generateRefreshToken(user);
-
-                return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
-            } else {
-                // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
-                String signupToken = UUID.randomUUID().toString();
-                redisTemplate.opsForValue().set("signup:" + signupToken, ProviderId, 1, TimeUnit.HOURS);
-                return ResponseEntity.status(HttpStatus.ACCEPTED).body(new SignupRequiredResponse(signupToken, ProviderId, payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
-            }
-
-        } catch (Exception e) {
-            log.error("Error processing login", e);
-            throw new AuthExecption(AuthErrorCode.INTERNAL_SERVER_ERROR);
+        // Verify signature
+        if (oidcProvider.isTokenSignatureInvalid(request.getIdToken(), publicKey)) {
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_SIGNATURE);
         }
+
+        // Decode and verify payload
+        OIDCDecodePayload payload = oidcProvider.verifyAndDecodeToken(request.getIdToken(), kakaoClientId);
+
+        // 2. Extract user ID from token payload
+        String ProviderId = payload.getSub();
+
+        // 3. Check if user exists
+        Optional<User> userOpt = userRepository.findByProviderIdAndProvider(ProviderId, "KAKAO");
+
+        if (userOpt.isPresent()) {
+            // User exists - login process
+            User user = userOpt.get();
+
+            // Generate JWT tokens for your app
+            String accessToken = generateAccessToken(user);
+            String refreshToken = generateRefreshToken(user);
+
+            return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
+        } else {
+            // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
+            String signupToken = UUID.randomUUID().toString();
+            redisTemplate.opsForValue().set("signup:" + signupToken, ProviderId, 1, TimeUnit.HOURS);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(new SignupRequiredResponse(signupToken, ProviderId, payload.getEmail(), payload.getNickname(), payload.getPicture(), false));
+        }
+
     }
 
     @Transactional
@@ -102,7 +97,7 @@ public class KakaoOAuthService {
             String redisKey = "signup:" + request.getSignupToken();
             String storedProviderId = redisTemplate.opsForValue().get(redisKey);
             if (storedProviderId == null || !storedProviderId.equals(request.getProviderId())) {
-                throw new SignUpExecption(SignUpErrorCode.NOT_MATCHED_PROVIDER_ID);
+                throw new SignUpException(SignUpErrorCode.NOT_MATCHED_PROVIDER_ID);
             }
 
             // 회원 가입 요청시, 사진 업로드를 했다면, s3에 저장
@@ -113,7 +108,7 @@ public class KakaoOAuthService {
                 }
                 catch (Exception e) {
                     log.error("Error uploading profile image", e);
-                    throw new SignUpExecption(SignUpErrorCode.FILE_UPLOAD_ERROR);
+                    throw new SignUpException(SignUpErrorCode.FILE_UPLOAD_ERROR);
                 }
             }
 
@@ -139,7 +134,7 @@ public class KakaoOAuthService {
             return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
         } catch (Exception e) {
             log.error("Error processing signup", e);
-            throw new SignUpExecption(SignUpErrorCode.INTERNAL_SERVER_ERROR);
+            throw new SignUpException(SignUpErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 

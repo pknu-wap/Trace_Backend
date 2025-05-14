@@ -6,7 +6,7 @@ import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.auth.dto.TokenResponse;
 import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.global.errorcode.TokenErrorCode;
-import com.example.trace.global.execption.TokenExecption;
+import com.example.trace.global.exception.TokenException;
 import com.example.trace.user.User;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -46,12 +46,12 @@ public class TokenService {
         String storedRefreshToken = (String) redisUtil.get(redisKey);
 
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-            throw new TokenExecption(TokenErrorCode.NOT_FOUND_REFRESH_TOKEN);
+            throw new TokenException(TokenErrorCode.NOT_FOUND_REFRESH_TOKEN);
         }
 
         // 4. 사용자 정보 조회
         User user = userRepository.findByProviderIdAndProvider(providerId, "KAKAO")
-                .orElseThrow(() -> new TokenExecption(TokenErrorCode.NOT_FOUND_USER));
+                .orElseThrow(() -> new TokenException(TokenErrorCode.NOT_FOUND_USER));
 
         // 5. 액세스 토큰 및 리프레시 토큰 재발급
         PrincipalDetails principalDetails = new PrincipalDetails(user);

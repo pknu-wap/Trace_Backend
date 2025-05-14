@@ -1,10 +1,9 @@
 package com.example.trace.auth.provider;
 
-import com.example.trace.auth.client.KakaoOAuthClient;
 import com.example.trace.auth.models.OIDCDecodePayload;
 import com.example.trace.auth.models.OIDCPublicKey;
 import com.example.trace.global.errorcode.AuthErrorCode;
-import com.example.trace.global.execption.AuthExecption;
+import com.example.trace.global.exception.AuthException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class KakaoOIDCProvider implements OIDCProvider {
             return new String(Base64.getUrlDecoder().decode(encoded));
         } catch (IllegalArgumentException e) {
             log.error("Invalid Base64 encoding in token header", e);
-            throw new AuthExecption(AuthErrorCode.DECODE_ERROR);
+            throw new AuthException(AuthErrorCode.DECODE_ERROR);
         }
     }
 
@@ -39,7 +38,7 @@ public class KakaoOIDCProvider implements OIDCProvider {
             return new ObjectMapper().readTree(json);
         } catch (IOException e) {
             log.error("Invalid JSON in token header", e);
-            throw new AuthExecption(AuthErrorCode.PARSE_ERROR);
+            throw new AuthException(AuthErrorCode.PARSE_ERROR);
         }
     }
 
@@ -48,7 +47,7 @@ public class KakaoOIDCProvider implements OIDCProvider {
             return new ObjectMapper().readValue(payloadJson, OIDCDecodePayload.class);
         } catch (IOException e) {
             log.error("Invalid JSON in token payload", e);
-            throw new AuthExecption(AuthErrorCode.PARSE_ERROR);
+            throw new AuthException(AuthErrorCode.PARSE_ERROR);
         }
     }
 
@@ -58,14 +57,14 @@ public class KakaoOIDCProvider implements OIDCProvider {
     public String getKidFromUnsignedTokenHeader(String token) {
         String[] parts = token.split("\\.");
         if (parts.length < 2) {
-            throw new AuthExecption(AuthErrorCode.INVALID_ID_TOKEN_FORMAT);
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_FORMAT);
         }
 
         String headerJson = decodeBase64(parts[0]);
         JsonNode headerNode = parseJson(headerJson);
 
         if (!headerNode.has("kid")) {
-            throw new AuthExecption(AuthErrorCode.KID_NOT_FOUND);
+            throw new AuthException(AuthErrorCode.KID_NOT_FOUND);
         }
 
         return headerNode.get("kid").asText();
@@ -76,7 +75,7 @@ public class KakaoOIDCProvider implements OIDCProvider {
 
         String[] parts = token.split("\\.");
         if (parts.length < 2) {
-            throw new AuthExecption(AuthErrorCode.INVALID_ID_TOKEN_FORMAT);
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_FORMAT);
         }
 
         String payloadJson = decodeBase64(parts[1]);
@@ -84,17 +83,17 @@ public class KakaoOIDCProvider implements OIDCProvider {
 
         // Verify issuer
         if (!ISSUER.equals(payload.getIss())) {
-            throw new AuthExecption(AuthErrorCode.INVALID_ID_TOKEN_ISSUER);
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_ISSUER);
         }
 
         // Verify audience
         if (!clientId.equals(payload.getAud())) {
-            throw new AuthExecption(AuthErrorCode.INVALID_ID_TOKEN_AUDIENCE);
+            throw new AuthException(AuthErrorCode.INVALID_ID_TOKEN_AUDIENCE);
         }
 
         // Verify expiration
         if (payload.getExp() < System.currentTimeMillis() / 1000) {
-            throw new AuthExecption(AuthErrorCode.EXPIRED_ID_TOKEN);
+            throw new AuthException(AuthErrorCode.EXPIRED_ID_TOKEN);
         }
 
         return payload;

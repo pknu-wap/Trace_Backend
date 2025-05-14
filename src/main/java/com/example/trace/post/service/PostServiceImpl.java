@@ -1,7 +1,7 @@
 package com.example.trace.post.service;
 
 import com.example.trace.global.errorcode.PostErrorCode;
-import com.example.trace.global.execption.PostExecption;
+import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.dto.PostVerificationResult;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
@@ -38,7 +38,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto createPost(PostCreateDto postCreateDto,Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new PostExecption(PostErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
         Post post = Post.builder()
                 .title(postCreateDto.getTitle())
@@ -55,7 +55,8 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId) {
         User user = userRepository.findByProviderId(ProviderId)
-                .orElseThrow(() -> new PostExecption(PostErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
+
 
         Post post = Post.builder()
                 .postType(PostType.valueOf(postCreateDto.getPostType()))
@@ -82,7 +83,7 @@ public class PostServiceImpl implements PostService {
                             .build();
                     savedPost.addImage(postImage);
                 } catch (Exception e) {
-                    throw new PostExecption(PostErrorCode.POST_IMAGE_UPLOAD_FAILED);
+                    throw new PostException(PostErrorCode.POST_IMAGE_UPLOAD_FAILED);
                 }
             }
         }
@@ -94,7 +95,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto getPostById(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostExecption(PostErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
         post.incrementViewCount();
         return PostDto.fromEntity(post);
     }
@@ -103,10 +104,10 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, String providerId) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostExecption(PostErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
         
         if (!post.getUser().getProviderId().equals(providerId)) {
-            throw new PostExecption(PostErrorCode.POST_UPDATE_FORBIDDEN);
+            throw new PostException(PostErrorCode.POST_UPDATE_FORBIDDEN);
         }
         
         post.editPost(postUpdateDto.getTitle(),postUpdateDto.getContent());
@@ -119,10 +120,10 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deletePost(Long id, String providerId) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostExecption(PostErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
         
         if (!post.getUser().getProviderId().equals(providerId)) {
-            throw new PostExecption(PostErrorCode.POST_DELETE_FORBIDDEN);
+            throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
         }
         postRepository.delete(post);
     }
@@ -131,7 +132,7 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostVerificationResult verifyPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostExecption(PostErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
         return postVerificationService.verifyPost(post);
     }
