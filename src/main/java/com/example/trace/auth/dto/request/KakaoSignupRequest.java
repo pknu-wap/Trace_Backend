@@ -28,7 +28,7 @@ public class KakaoSignupRequest {
     @Schema(description = "email 설정", example = "exampl@example.com")
     private String email;
 
-    @Schema(description = "회원가입 정보에서 받은 기본 프사", example = "https://example.com/profile.jpg")
+    @Schema(description = "프로필 이미지 url", example = "https://wap-trace-bucket.s3.ap-northeast-2.amazonaws.com/profile/ab54b37b-d46_1.png_4237792414")
     private String profileImageUrl; // 프로필 이미지 URL
     
     // 프로필 이미지 파일 업로드를 위한 필드 (직렬화에서 제외)

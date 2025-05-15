@@ -16,9 +16,9 @@ public class PostVerificationResult {
     private boolean textResult;
     @Schema(description = "이미지 인증 결과", example = "true")
     private boolean imageResult;
-    @Schema(description = "인증 성공 이유", example = "텍스트 인증 성공")
+    @Schema(description = "인증 성공 이유", example = "텍스트가 선행에 대한 설명이고, 이미지는 텍스트와 관련되있으며 선행과 관련된 이미지입니다.")
     private String successReason;
-    @Schema(description = "인증 실패 이유", example = "텍스트 인증 실패")
+    @Schema(description = "인증 실패 이유", example = "null")
     private String failureReason;
 
 
