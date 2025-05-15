@@ -66,6 +66,9 @@ public class PostServiceImpl implements PostService {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
         }
 
+        if (postCreateDto.getTitle() == null || postCreateDto.getTitle().isEmpty()) {
+            throw new PostException(PostErrorCode.TITLE_EMPTY);
+        }
 
         Post post = Post.builder()
                 .postType(PostType.valueOf(postCreateDto.getPostType()))

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "게시글 DTO")
 public class PostDto {
     @Schema(description = "게시글 ID", example = "1")
     private Long id;
@@ -78,8 +79,9 @@ public class PostDto {
                 .nickname(post.getUser().getNickname())
                 .imageUrls(imageUrls)
                 .isVerified(
-                        post.getVerification().isImageVerified()
-                        && post.getVerification().isTextVerified()
+                        post.getVerification() != null &&
+                        post.getVerification().isImageVerified() &&
+                        post.getVerification().isTextVerified()
                 )
                 .isOwner(true)
                 .profileImageUrl(post.getUser().getProfileImageUrl())
