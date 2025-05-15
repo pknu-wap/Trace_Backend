@@ -15,7 +15,7 @@ public class EmotionResponse {
     @Schema(description = "감정 표현 추가 여부", example = "true")
     @JsonProperty("isAdded")
     private boolean isAdded;
-    @Schema(description = "감정 표현 타입", example = "LIKE")
+    @Schema(description = "감정 표현 타입", example = "LIKEABLE")
     private String emotionType;
     public EmotionResponse(boolean isAdded, String emotionType) {
         this.isAdded = isAdded;
