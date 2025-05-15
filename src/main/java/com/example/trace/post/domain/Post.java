@@ -52,6 +52,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -68,6 +71,10 @@ public class Post {
     public void addImage(PostImage image) {
         this.images.add(image);
         image.setPost(this);
+    }
+
+    public void addComment(Comment comment){
+        this.commentList.add(comment);
     }
 
     public void incrementViewCount() {
