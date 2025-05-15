@@ -13,6 +13,7 @@ public enum PostErrorCode implements ErrorCode{
     POST_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "게시글 수정 권한이 없습니다."),
     POST_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다."),
     CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "내용이 비어있습니다."),
+    TITLE_EMPTY(HttpStatus.BAD_REQUEST, "제목이 비어있습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
     COMMENT_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다."),
     ;

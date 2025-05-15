@@ -1,6 +1,6 @@
 package com.example.trace.emotion;
 
-import com.example.trace.auth.repository.UserRepository;
+import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.emotion.dto.EmotionResponse;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.repository.PostRepository;
@@ -36,5 +36,21 @@ public class EmotionService {
             emotionRepository.save(emotion);
             return new EmotionResponse(true, emotionType.name());
         }
+    }
+
+    public EmotionCountDto getEmotionCountsByType(Long postId) {
+        Long heartwarmingCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.HEARTWARMING);
+        Long gratefulCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.GRATEFUL);
+        Long impressiveCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.IMPRESSIVE);
+        Long touchingCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.TOUCHING);
+        Long likableCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.LIKABLE);
+
+        return EmotionCountDto.builder()
+                .heartwarmingCount(heartwarmingCount)
+                .gratefulCount(gratefulCount)
+                .impressiveCount(impressiveCount)
+                .touchingCount(touchingCount)
+                .likableCount(likableCount)
+                .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.example.trace.post.dto;
 
+import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "게시글 DTO")
 public class PostDto {
     @Schema(description = "게시글 ID", example = "1")
     private Long id;
@@ -26,6 +28,9 @@ public class PostDto {
 
     @Schema(description = "조회수", example = "100")
     private Long viewCount;
+
+    @Schema(description = "감정 수")
+    private EmotionCountDto emotionCount;
 
     @Schema(description = "게시글 제목", example = "게시글 제목")
     private String title;
@@ -41,6 +46,15 @@ public class PostDto {
 
     @Schema(description = "게시글 이미지 URL", example = "[\"image1.jpg\", \"image2.jpg\"]")
     private List<String> imageUrls;
+
+    @Schema(description = "게시글 작성자 프로필 이미지 URL", example = "https://example.com/profile.jpg")
+    private String profileImageUrl;
+
+    @Schema(description = "게시글 소유 여부", example = "true")
+    private boolean isOwner;
+
+    @Schema(description = "게시글 선행 인증 여부", example = "false")
+    private boolean isVerified;
 
     @Schema(description = "게시글 작성일", example = "2023-10-01T12:00:00")
     private LocalDateTime createdAt;
@@ -64,6 +78,13 @@ public class PostDto {
                 .providerId(post.getUser().getProviderId())
                 .nickname(post.getUser().getNickname())
                 .imageUrls(imageUrls)
+                .isVerified(
+                        post.getVerification() != null &&
+                        post.getVerification().isImageVerified() &&
+                        post.getVerification().isTextVerified()
+                )
+                .isOwner(true)
+                .profileImageUrl(post.getUser().getProfileImageUrl())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();
