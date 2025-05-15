@@ -24,7 +24,7 @@ public class PostDto {
     @Schema(description = "게시글 ID", example = "1")
     private Long id;
 
-    @Schema(description = "게시글 타입", example = "ALL")
+    @Schema(description = "게시글 타입", example = "FREE, GOOD_DEED, MISSION")
     private String postType;
 
     @Schema(description = "조회수", example = "100")
