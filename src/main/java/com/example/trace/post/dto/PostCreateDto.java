@@ -19,7 +19,7 @@ import java.util.List;
 public class PostCreateDto {
 
     @NotBlank(message = "게시글 유형을 선택해주세요")
-    @Schema(description = "게시글 유형", example = "ALL")
+    @Schema(description = "게시글 유형", example = "FREE,GOOD_DEED,MISSION")
     private String postType;
     
     @NotBlank(message = "제목을 입력해주세요")

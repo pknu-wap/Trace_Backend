@@ -3,6 +3,7 @@ package com.example.trace.post.dto;
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,7 @@ public class PostDto {
     @Schema(description = "게시글 ID", example = "1")
     private Long id;
 
-    @Schema(description = "게시글 타입", example = "ALL")
+    @Schema(description = "게시글 타입", example = "FREE, GOOD_DEED, MISSION")
     private String postType;
 
     @Schema(description = "조회수", example = "100")
@@ -51,9 +52,11 @@ public class PostDto {
     private String profileImageUrl;
 
     @Schema(description = "게시글 소유 여부", example = "true")
+    @JsonProperty("isOwner")
     private boolean isOwner;
 
     @Schema(description = "게시글 선행 인증 여부", example = "false")
+    @JsonProperty("isVerified")
     private boolean isVerified;
 
     @Schema(description = "게시글 작성일", example = "2023-10-01T12:00:00")

@@ -1,7 +1,6 @@
 package com.example.trace.post.domain;
 
 public enum PostType {
-    ALL("전체"),
     FREE("자유"),
     GOOD_DEED("선행"),
     MISSION("미션");
