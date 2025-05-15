@@ -1,5 +1,7 @@
 package com.example.trace.post.service;
 
+import com.example.trace.emotion.EmotionService;
+import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.dto.PostVerificationResult;
@@ -33,6 +35,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
     private final PostVerificationService postVerificationService;
+    private final EmotionService emotionService;
 
     private static final int MAX_IMAGES = 5;
 
@@ -100,11 +103,20 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto getPostById(Long id) {
+    public PostDto getPostById(Long id,String providerId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
+
         post.incrementViewCount();
-        return PostDto.fromEntity(post);
+
+        EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(id);
+
+        PostDto postDto = PostDto.fromEntity(post);
+
+        postDto.setEmotionCount(emotionCountDto);
+        postDto.setOwner(post.getUser().getProviderId().equals(providerId));
+
+        return postDto;
     }
 
     @Override

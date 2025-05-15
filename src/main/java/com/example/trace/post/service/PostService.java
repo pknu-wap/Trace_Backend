@@ -12,7 +12,7 @@ public interface PostService {
 
     PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId);
 
-    PostDto getPostById(Long id);
+    PostDto getPostById(Long id,String providerId);
 
     PostDto updatePost(Long id, PostUpdateDto postUpdateDto,String providerId);
     

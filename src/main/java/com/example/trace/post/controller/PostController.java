@@ -9,7 +9,6 @@ import com.example.trace.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -77,8 +76,11 @@ public class PostController {
                     schema = @Schema(implementation = PostDto.class)
             )
     )
-    public ResponseEntity<PostDto> getPost(@PathVariable Long id) {
-        PostDto post = postService.getPostById(id);
+    public ResponseEntity<PostDto> getPost(
+            @PathVariable Long id,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        PostDto post = postService.getPostById(id,providerId);
         return ResponseEntity.ok(post);
     }
 
