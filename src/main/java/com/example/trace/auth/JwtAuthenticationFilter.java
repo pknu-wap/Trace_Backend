@@ -1,17 +1,16 @@
 package com.example.trace.auth;
 
 
+import com.example.trace.global.errorcode.TokenErrorCode;
+import com.example.trace.global.exception.TokenException;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
-import com.example.trace.Util.HttpResponseUtil;
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.Util.RedisUtil;
 import com.example.trace.auth.repository.UserRepository;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,52 +67,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         log.info("[*] Jwt Filter - Request URI: {}", request.getRequestURI());
+        String accessToken = jwtUtil.resolveAccessToken(request);
 
-        try {
-            String accessToken = jwtUtil.resolveAccessToken(request);
-
-            // accessToken 없이 접근할 경우
-            if (accessToken == null) {
-                log.info("[*] No accessToken, proceeding to next filter for URI: {}", request.getRequestURI());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // logout 처리된 accessToken
-            if (redisUtil.get(accessToken) != null && redisUtil.get(accessToken).equals("logout")) {
-                log.info("[*] Logout accessToken");
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 유효성 검사
-            jwtUtil.validateToken(accessToken);
-
-            // accessToken에서 providerId 추출
-            String providerId = jwtUtil.getProviderId(accessToken);
-            // accessToken에서 providerId로 User 객체를 가져옴
-            User user = userRepository.findByProviderIdAndProvider(providerId,"KAKAO").orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            // accesstoken을 기반으로 principalDetail 저장
-            PrincipalDetails principalDetails = new PrincipalDetails(user);
-
-
-            // 스프링 시큐리티 인증 토큰 생성
-            Authentication authToken = new UsernamePasswordAuthenticationToken(
-                    principalDetails,
-                    null,
-                    principalDetails.getAuthorities());
-
-            // 컨텍스트 홀더에 저장
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-
+        // accessToken 없이 접근할 경우
+        if (accessToken == null) {
+            log.info("[*] No accessToken, proceeding to next filter for URI: {}", request.getRequestURI());
             filterChain.doFilter(request, response);
-        } catch (ExpiredJwtException e) {
-            try {
-                HttpResponseUtil.setErrorResponse(response, HttpStatus.UNAUTHORIZED, null,"엑세스 토큰이 유효하지 않습니다.");
-            } catch (IOException ex) {
-                log.error("IOException occurred while setting error response: {}", ex.getMessage());
-            }
-            log.warn("[*] case : accessToken Expired");
+            return;
         }
+
+        jwtUtil.validateToken(accessToken);
+
+        // logout 혹은 회원탈퇴 처리된 accessToken
+        if (redisUtil.get(accessToken) != null && redisUtil.get(accessToken).equals("logout")) {
+            log.info("[*] Logout or deleted account accessToken");
+            throw new TokenException(TokenErrorCode.LOGOUT_TOKEN);
+        }
+
+        if (redisUtil.get(accessToken) != null && redisUtil.get(accessToken).equals("delete")){
+            log.info("[*] Deleted account accessToken");
+            throw new TokenException(TokenErrorCode.DELETED_USER);
+        }
+
+        // 유효성 검사
+        jwtUtil.validateToken(accessToken);
+
+        // accessToken에서 providerId 추출
+        String providerId = jwtUtil.getProviderId(accessToken);
+        // accessToken에서 providerId로 User 객체를 가져옴
+        User user = userRepository.findByProviderIdAndProvider(providerId,"KAKAO").orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        // accesstoken을 기반으로 principalDetail 저장
+        PrincipalDetails principalDetails = new PrincipalDetails(user);
+
+
+        // 스프링 시큐리티 인증 토큰 생성
+        Authentication authToken = new UsernamePasswordAuthenticationToken(
+                principalDetails,
+                null,
+                principalDetails.getAuthorities());
+
+        // 컨텍스트 홀더에 저장
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        filterChain.doFilter(request, response);
+
+
     }
 }
