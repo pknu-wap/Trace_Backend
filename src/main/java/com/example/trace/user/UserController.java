@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
-    private final RedisUtil redisUtil;
 
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 가져옵니다.")
     @ApiResponse(
@@ -43,21 +40,33 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
+    @Operation(summary = "로그아웃", description = "로그아웃 합니다.")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Logout successful.",
+            content = @Content(
+                    mediaType = "application/json"
+            )
+    )
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         String accessToken = jwtUtil.resolveAccessToken(request);
-        if (accessToken != null) {
-            // Get the token's remaining expiration time
-            long expiration = jwtUtil.getExpTime(accessToken);
-            // Add token to blacklist in Redis with "logout" value and expiration time
-            redisUtil.save(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
-            String test = (String)redisUtil.get(accessToken);
-            log.info("Logout test: {}", test);
-            // Also delete the refresh token for this user
-            String providerId = jwtUtil.getProviderId(accessToken);
-            String redisKey = "RT:" + providerId;
-            redisUtil.delete(redisKey);
-        }
+        userService.logout(accessToken);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "회원탈퇴", description = "회원탈퇴 합니다.")
+    @ApiResponse(
+            responseCode = "200",
+            description = "account deletion successful.",
+            content = @Content(
+                    mediaType = "application/json"
+            )
+    )
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteUser(HttpServletRequest request) {
+        String accessToken = jwtUtil.resolveAccessToken(request);
+        userService.deleteUser(accessToken);
         return ResponseEntity.ok().build();
     }
 }
