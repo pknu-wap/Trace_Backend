@@ -4,7 +4,8 @@ import com.example.trace.emotion.EmotionService;
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.PostException;
-import com.example.trace.gpt.dto.PostVerificationResult;
+import com.example.trace.gpt.domain.Verification;
+import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.user.User;
@@ -58,7 +59,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto createPostWithPictures(PostCreateDto postCreateDto, String ProviderId) {
+    public PostDto createPost(PostCreateDto postCreateDto, String ProviderId,VerificationDto verificationDto) {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
@@ -70,12 +71,18 @@ public class PostServiceImpl implements PostService {
             throw new PostException(PostErrorCode.TITLE_EMPTY);
         }
 
+        Verification verification = null;
+        if(verificationDto != null){
+            verification = postVerificationService.makeVerification(verificationDto);
+        }
+
         Post post = Post.builder()
                 .postType(PostType.valueOf(postCreateDto.getPostType()))
                 .viewCount(0L)
                 .title(postCreateDto.getTitle())
                 .content(postCreateDto.getContent())
                 .user(user)
+                .verification(verification)
                 .build();
 
         Post savedPost = postRepository.save(post);
@@ -83,7 +90,7 @@ public class PostServiceImpl implements PostService {
         List<MultipartFile> imageFiles = postCreateDto.getImageFiles();
         if (imageFiles != null && !imageFiles.isEmpty()) {
             int imagesToProcess = Math.min(imageFiles.size(), MAX_IMAGES);
-            
+
             for (int i = 0; i < imagesToProcess; i++) {
                 MultipartFile file = imageFiles.get(i);
                 log.info("Processing image file: {}", file.getOriginalFilename());
@@ -100,13 +107,13 @@ public class PostServiceImpl implements PostService {
                 }
             }
         }
-        
+
         return PostDto.fromEntity(savedPost);
     }
 
     @Override
     @Transactional
-    public PostDto getPostById(Long id,String providerId) {
+    public PostDto getPostById (Long id, String providerId){
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
@@ -124,15 +131,15 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto updatePost(Long id, PostUpdateDto postUpdateDto, String providerId) {
+    public PostDto updatePost (Long id, PostUpdateDto postUpdateDto, String providerId){
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-        
+
         if (!post.getUser().getProviderId().equals(providerId)) {
             throw new PostException(PostErrorCode.POST_UPDATE_FORBIDDEN);
         }
-        
-        post.editPost(postUpdateDto.getTitle(),postUpdateDto.getContent());
+
+        post.editPost(postUpdateDto.getTitle(), postUpdateDto.getContent());
 
         Post updatedPost = postRepository.save(post);
         return PostDto.fromEntity(updatedPost);
@@ -143,20 +150,13 @@ public class PostServiceImpl implements PostService {
     public void deletePost(Long id, String providerId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-        
+
         if (!post.getUser().getProviderId().equals(providerId)) {
             throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
         }
         postRepository.delete(post);
     }
 
-    @Override
-    @Transactional
-    public PostVerificationResult verifyPost(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
-        return postVerificationService.verifyPost(post);
-    }
 
 }

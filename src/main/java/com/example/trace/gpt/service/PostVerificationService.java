@@ -1,8 +1,10 @@
 package com.example.trace.gpt.service;
 
-import com.example.trace.gpt.dto.PostVerificationResult;
-import com.example.trace.post.domain.Post;
+import com.example.trace.gpt.domain.Verification;
+import com.example.trace.gpt.dto.VerificationDto;
+import com.example.trace.post.dto.PostCreateDto;
 
 public interface PostVerificationService {
-    PostVerificationResult verifyPost(Post post);
+    VerificationDto verifyPost(PostCreateDto postCreateDto,String providerId);
+    Verification makeVerification(VerificationDto verificationDto);
 } 
