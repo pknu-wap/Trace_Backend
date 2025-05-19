@@ -29,9 +29,6 @@ public class PostCreateDto {
     @Schema(description = "게시글 내용", example = "게시글 내용")
     private String content;
 
-    @Schema(description = "선행 인증 요구", example = "true")
-    private boolean isVerificationRequired;
-
     @JsonIgnore
     private MultipartFile imageFile;
 
