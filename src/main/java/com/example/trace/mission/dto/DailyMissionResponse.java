@@ -18,7 +18,10 @@ public class DailyMissionResponse {
     }
 
     public static DailyMissionResponse fromEntity(DailyMission mission) {
-
+        if (mission == null || mission.getMission() == null) {
+            throw new IllegalArgumentException("유효하지 않은 미션 데이터입니다.");
+        }
+        
         return new DailyMissionResponse(
                 mission.getMission().getId(),
                 mission.getMission().getDescription(),

@@ -39,6 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final List<String> excludePathPatterns = List.of(
             "/auth/oauth/*",
             "/api/v1/*",
+            "/api/v1/auth/oauth/login",
+            "/api/v1/auth/oauth/signup",
             "/h2-console/**",
             "/api/v1/api/user/*",
             "/idtoken",

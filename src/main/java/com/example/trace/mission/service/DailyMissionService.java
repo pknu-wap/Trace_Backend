@@ -6,6 +6,7 @@ import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.MissionRepository;
 import com.example.trace.user.User;
 import com.example.trace.user.UserService;
+import com.example.trace.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,9 @@ public class DailyMissionService {
     private final MissionRepository missionRepository;
     private final DailyMissionRepository dailyMissionRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
 
-    @Scheduled(cron = "*/10 * * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void assignDailyMissionsToAllUsers() {
         try {
             LocalDate today = LocalDate.now();
@@ -48,4 +50,26 @@ public class DailyMissionService {
     public Optional<DailyMission> getTodaysMission(User user) {
         return dailyMissionRepository.findByUserAndDate(user, LocalDate.now());
     }
+    
+    /**
+     * providerId로 오늘의 미션을 조회합니다.
+     */
+    public Optional<DailyMission> getTodaysMissionByProviderId(String providerId) {
+        try {
+            if (providerId == null) {
+                return Optional.empty();
+            }
+            
+            // providerId로 사용자 조회
+            User user = userRepository.findByProviderId(providerId).orElse(null);
+            if (user == null) {
+                return Optional.empty();
+            }
+            
+            return getTodaysMission(user);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
 }
+
