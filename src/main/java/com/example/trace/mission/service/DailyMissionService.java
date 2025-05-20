@@ -33,6 +33,11 @@ public class DailyMissionService {
     // 최대 변경 가능 횟수
     private static final int MAX_CHANGES_PER_DAY = 10;
 
+    //랜덤미션 가져옴
+    public Mission getRandomMission() {
+        return missionRepository.findRandomMission();
+    }
+
     @Scheduled(cron = "0 * * * * *")
     public void assignDailyMissionsToAllUsers() {
         try {
@@ -44,7 +49,7 @@ public class DailyMissionService {
                 dailyMissionRepository.findByUserAndDate(user, today)
                         .ifPresent(existing -> dailyMissionRepository.delete(existing));
 
-                Mission randomMission = missionRepository.findRandomMission();
+                Mission randomMission = getRandomMission();
 
                 // 빌더 대신 생성자를 직접 호출하여 DailyMission 객체 생성
                 DailyMission dailyMission = new DailyMission(user, randomMission, today);
@@ -114,17 +119,17 @@ public class DailyMissionService {
         // 현재 미션 ID 기억
         Long currentMissionId = currentMission.getMission().getId();
         
-        // 새로운 미션 할당 (최대 10번 시도하여 다른 미션 찾기)
+        // 새로운 미션 할당 (최대 5번 시도하여 다른 미션 찾기)
         Mission newMission = null;
-        for (int i = 0; i < 10; i++) {
-            Mission randomMission = missionRepository.findRandomMission();
+        for (int i = 0; i < 5; i++) {
+            Mission randomMission = getRandomMission();
             if (!randomMission.getId().equals(currentMissionId)) {
                 newMission = randomMission;
                 break;
             }
         }
         
-        // 10번 시도해도 다른 미션을 찾지 못한 경우
+        // 5번 시도해도 다른 미션을 찾지 못한 경우
         if (newMission == null) {
             throw new RuntimeException("다른 미션을 찾을 수 없습니다. 나중에 다시 시도해주세요.");
         }
