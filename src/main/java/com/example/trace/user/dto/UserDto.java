@@ -1,5 +1,6 @@
 package com.example.trace.user.dto;
 
+
 import com.example.trace.user.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,9 @@ public class UserDto {
         this.profileImageUrl = user.getProfileImageUrl();
         this.email = user.getEmail();
         return this;
+    }
+
+    public Long getId() {
+        return null;
     }
 }
