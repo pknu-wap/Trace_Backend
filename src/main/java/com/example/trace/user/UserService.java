@@ -6,8 +6,6 @@ import com.example.trace.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
@@ -18,9 +16,5 @@ public class UserService {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return new UserDto().fromEntity(user);
-    }
-
-    public List<User> getAllUsers() {
-        return List.of();
     }
 }

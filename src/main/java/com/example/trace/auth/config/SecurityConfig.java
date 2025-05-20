@@ -37,7 +37,6 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/oauth/*",
-                    "/api/v1/missions/today/{userId}",
                     "/api/v1/*",
                     "/h2-console/**",
                     "/api/v1/api/user/*",

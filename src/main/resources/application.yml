@@ -3,7 +3,7 @@ spring:
   application:
     name: Trace
   profiles:
-    active: local
+    active: dev
 
 # AWS S3 설정
 cloud:
@@ -119,7 +119,7 @@ spring:
 
   sql:
     init:
-      mode: never
+      mode: always
       data-locations: classpath:db/data.sql
 
   # H2 데이터베이스 설정
@@ -134,7 +134,8 @@ spring:
     console:
       enabled: true
       path: /h2-console
-
+      settings:
+        web-allow-others: false
 
   jpa:
     hibernate:

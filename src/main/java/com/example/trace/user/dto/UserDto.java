@@ -20,8 +20,4 @@ public class UserDto {
         this.email = user.getEmail();
         return this;
     }
-
-    public Long getId() {
-        return null;
-    }
 }
