@@ -1,0 +1,30 @@
+[33mad15662[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/jiseob/#19[m[33m)[m Merge branch 'feature/jiseob/#19' of https://github.com/pknu-wap/Trace_Backend into feature/jiseob/#19
+[33m0e37fac[m #19 [FEATURE] 회원 가입 DTO 변경 및 회원 가입 API 파라미터 변경
+[33mca8ceec[m #19 [FEATURE] 회원 가입 DTO 변경 및 회원 가입 API 파라미터 변경
+[33m1386117[m #19 [Chore] 임시 컨트롤러로 POSTMAN 요청 테스트
+[33m2084cf1[m 임시 커밋: 리베이스 중 변경사항 저장
+[33ma2452b7[m[33m ([m[1;31morigin/feature/jiseob/#19[m[33m)[m #19 [Chore] 임시 컨트롤러로 POSTMAN 요청 테스트
+[33m0fbceef[m #19 [Chore] S3 설정 및 S3 업로드 서비스 구현
+[33m7535897[m #19 [Chore] aws 의존성 설치 및 aws 사용자 키 설정
+[33mc5960b9[m #19 [Refactor] 회원가입 시, 사용자 id와 nickname 필수 설정
+[33m4646eef[m #19 [Chore] 지워진 TokenResponse 다시 생성
+[33m200bf87[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m #6 [CHORE] admin 폴더명 auth로 변경
+[33mebee3b2[m #6 [CHORE] BaseUrl 설정 및 그에 맞는 세팅
+[33mfcbb4dc[m #6 [REFACTOR] 도메인 단위로 파일 정리 auth 관련 파일은 admin dir로 이동
+[33mffec45a[m #6 [REFACTOR] 회원가입 시, username은 두고 nickname만 받기.
+[33m9abdae9[m #6 [CHORE] 필요 의존성 업데이트
+[33mf4ee999[m Merge pull request #13 from pknu-wap/revert-11-feature/jiseob/#6
+[33m5901858[m Revert "Feature/jiseob/#6"
+[33md531223[m Merge pull request #11 from pknu-wap/feature/jiseob/#6
+[33m51b1631[m[33m ([m[1;32mfeature/jiseob/#6[m[33m)[m #6 [CHORE] admin 폴더명 auth로 변경
+[33m2a6d9a0[m #6 [CHORE] BaseUrl 설정 및 그에 맞는 세팅
+[33mf8d6a96[m #6 [REFACTOR] 도메인 단위로 파일 정리 auth 관련 파일은 admin dir로 이동
+[33mfcc4ee9[m #6 [REFACTOR] 회원가입 시, username은 두고 nickname만 받기.
+[33m6ca61dd[m #6 [CHORE] 필요 의존성 업데이트
+[33m93548bc[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Create PULL_REQUEST_TEMPLATE.md
+[33m353557d[m Merge pull request #9 from pknu-wap/feature/login
+[33mb491416[m Update custom.md
+[33m54ad7b7[m Update issue templates
+[33m40d7238[m 로그인/회원가입 구현
+[33m8cbcaf3[m OIDC로 로그인/ 회원가입 구현
+[33mc1d3889[m Initial commit
