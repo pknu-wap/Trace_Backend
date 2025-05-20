@@ -3,7 +3,7 @@ package com.example.trace.mission.controller;
 import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.service.DailyMissionService;
 import com.example.trace.mission.dto.DailyMissionResponse;
-import com.example.trace.mission.dto.MissionChangeRequestDto;
+import com.example.trace.mission.dto.DailyMissionRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,7 @@ public class DailyMissionController {
      * 일일 미션을 변경합니다. 하루 최대 10번까지 변경 가능합니다.
      */
     @PostMapping("/change")
-    public ResponseEntity<?> changeDailyMission(@RequestBody MissionChangeRequestDto requestDto) {
+    public ResponseEntity<?> changeDailyMission(@RequestBody DailyMissionRequestDto requestDto) {
         try {
             DailyMission changedMission = missionService.changeDailyMission(requestDto.getProviderId());
             

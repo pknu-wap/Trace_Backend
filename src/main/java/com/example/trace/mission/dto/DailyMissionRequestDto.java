@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MissionChangeRequestDto {
+public class DailyMissionRequestDto {
     @NotBlank(message = "사용자 ID는 필수입니다")
     private String providerId;
 } 
