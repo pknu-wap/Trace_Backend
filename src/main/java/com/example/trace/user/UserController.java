@@ -1,7 +1,6 @@
 package com.example.trace.user;
 
 import com.example.trace.auth.Util.JwtUtil;
-import com.example.trace.auth.Util.RedisUtil;
 import com.example.trace.user.dto.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,7 +31,7 @@ public class UserController {
                     mediaType = "application/json", schema = @Schema(implementation = UserDto.class)
             )
     )
-    @PostMapping
+    @GetMapping
     public ResponseEntity<UserDto> getUserInfo(HttpServletRequest request) {
         String token = jwtUtil.resolveAccessToken(request);
         String providerId = jwtUtil.getProviderId(token);

@@ -1,5 +1,7 @@
 package com.example.trace.post.controller;
 
+import com.example.trace.gpt.dto.VerificationDto;
+import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.post.dto.PostCreateDto;
@@ -32,6 +34,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final PostVerificationService postVerification;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(summary = "게시글 작성", description = "게시글을 작성합니다.")
@@ -48,7 +51,7 @@ public class PostController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE)
     ))
-    public ResponseEntity<PostDto> createPostWithPictures(
+    public ResponseEntity<PostDto> createPost(
             @Valid @RequestPart("request") PostCreateDto postCreateDto,
             @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
@@ -60,10 +63,39 @@ public class PostController {
             postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
 
-        PostDto createdPost = postService.createPostWithPictures(postCreateDto, ProviderId);
+        PostDto createdPost = postService.createPost(postCreateDto, ProviderId,null);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
+    @PostMapping(value ="/verify",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "게시글 작성 시 인증 요구", description = "게시글의 내용이 선행과 관련있는지 인증합니다.")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "인증된 게시글 작성 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PostDto.class)
+                    )
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
+            encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE)
+    ))
+    public ResponseEntity<PostDto> createPostWithVerification(
+            @RequestPart("request") PostCreateDto postCreateDto,
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            // Limit to 5 images
+            int maxImages = Math.min(imageFiles.size(), 5);
+            postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
+        }
+        VerificationDto verificationDto = postVerification.verifyPost(postCreateDto, providerId);
+        PostDto postDto = postService.createPost(postCreateDto,providerId,verificationDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
+    }
 
 
     @GetMapping("/{id}")

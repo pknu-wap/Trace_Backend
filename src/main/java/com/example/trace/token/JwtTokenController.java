@@ -1,7 +1,9 @@
 package com.example.trace.token;
 
 import com.example.trace.auth.dto.TokenResponse;
+import com.example.trace.token.dto.CheckExpRequest;
 import com.example.trace.token.dto.ExpResponse;
+import com.example.trace.token.dto.ReIssueRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -100,11 +102,12 @@ public class JwtTokenController {
             )
         )
     })
-    @GetMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> reissueAccessToken(
         @Parameter(description = "유효한 리프레시 토큰", required = true) 
-        @RequestParam String refreshToken
+        @RequestBody ReIssueRequest request
     ) {
+        String refreshToken = request.getRefreshToken();
         log.info("[*] Access Token 재발급 요청 - refreshToken: {}", refreshToken);
         TokenResponse response = tokenService.reissueAccessToken(refreshToken);
         return ResponseEntity.ok(response);
@@ -168,11 +171,12 @@ public class JwtTokenController {
             )
         )
     })
-    @GetMapping("/expiration")
+    @PostMapping("/expiration")
     public ResponseEntity<ExpResponse> checkTokenExpiration(
-        @Parameter(description = "확인할 JWT 토큰", required = true) 
-        @RequestParam String token
+            @Parameter(description = "확인할 JWT 토큰", required = true)
+            @RequestBody CheckExpRequest request
     ) {
+        String token = request.getToken();
         log.info("[*] 토큰 만료 확인 요청 - token: {}", token);
         boolean isExpired = tokenService.checkTokenExpiration(token);
         ExpResponse response = new ExpResponse(isExpired);

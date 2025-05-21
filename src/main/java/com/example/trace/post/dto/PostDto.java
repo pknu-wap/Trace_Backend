@@ -83,8 +83,8 @@ public class PostDto {
                 .imageUrls(imageUrls)
                 .isVerified(
                         post.getVerification() != null &&
-                        post.getVerification().isImageVerified() &&
-                        post.getVerification().isTextVerified()
+                                (post.getVerification().isImageVerified() ||
+                                        post.getVerification().isTextVerified())
                 )
                 .isOwner(true)
                 .profileImageUrl(post.getUser().getProfileImageUrl())
