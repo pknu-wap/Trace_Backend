@@ -3,7 +3,7 @@ spring:
   application:
     name: Trace
   profiles:
-    active: dev
+    active: local
 
 # AWS S3 설정
 cloud:
@@ -66,6 +66,8 @@ logging:
     org.hibernate: INFO
     com.example.trace: DEBUG
     org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
 
 
 ---
@@ -89,12 +91,13 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
         show_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
+
 
   sql:
     init:
