@@ -9,6 +9,7 @@ import com.example.trace.global.exception.TokenException;
 import com.example.trace.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.example.trace.user.dto.UpdateUserRequest;
 
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +26,29 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return new UserDto().fromEntity(user);
     }
+
+    public UserDto updateUserInfo(String providerId, UpdateUserRequest request) {
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String newNickname = request.getNickname();
+        if (newNickname != null) {
+            // 닉네임이 현재 닉네임과 다를 때만 중복 체크
+            if (!newNickname.equals(user.getNickname()) && userRepository.existsByNickname(newNickname)) {
+                throw new IllegalArgumentException("Nickname is already in use.");
+            }
+            user.setNickname(newNickname);
+        }
+
+        if (request.getProfileImageUrl() != null) {
+            user.setProfileImageUrl(request.getProfileImageUrl());
+        }
+
+        userRepository.save(user);
+        return new UserDto().fromEntity(user);
+    }
+
+
 
     public void logout(String accessToken) {
         String providerId = jwtUtil.getProviderId(accessToken);

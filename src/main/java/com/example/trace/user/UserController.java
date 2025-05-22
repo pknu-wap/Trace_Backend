@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.trace.user.dto.UpdateUserRequest;
+
+
 
 
 @RestController
@@ -24,6 +27,7 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
+
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 가져옵니다.")
     @ApiResponse(
             responseCode = "200",
@@ -32,6 +36,7 @@ public class UserController {
                     mediaType = "application/json", schema = @Schema(implementation = UserDto.class)
             )
     )
+
     @PostMapping
     public ResponseEntity<UserDto> getUserInfo(HttpServletRequest request) {
         String token = jwtUtil.resolveAccessToken(request);
@@ -39,6 +44,16 @@ public class UserController {
         UserDto userDto = userService.getUserInfo(providerId);
         return ResponseEntity.ok(userDto);
     }
+
+    @Operation(summary = "유저 정보 수정", description = "닉네임 및 프로필 이미지를 수정합니다.")
+    @PutMapping
+    public ResponseEntity<UserDto> updateUserInfo(@RequestBody UpdateUserRequest request, HttpServletRequest httpRequest) {
+        String token = jwtUtil.resolveAccessToken(httpRequest);
+        String providerId = jwtUtil.getProviderId(token);
+        UserDto updatedUser = userService.updateUserInfo(providerId, request);
+        return ResponseEntity.ok(updatedUser);
+    }
+
 
     @Operation(summary = "로그아웃", description = "로그아웃 합니다.")
     @ApiResponse(
@@ -69,4 +84,5 @@ public class UserController {
         userService.deleteUser(accessToken);
         return ResponseEntity.ok().build();
     }
+
 }
