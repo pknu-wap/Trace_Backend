@@ -6,7 +6,7 @@ import com.example.trace.global.exception.GptException;
 import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
-import com.example.trace.post.dto.PostCreateDto;
+import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.user.User;
 import com.example.trace.auth.repository.UserRepository;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;

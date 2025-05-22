@@ -1,4 +1,4 @@
-package com.example.trace.post.dto;
+package com.example.trace.post.dto.post;
 
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.post.domain.Post;

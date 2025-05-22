@@ -1,4 +1,4 @@
-package com.example.trace.post.dto;
+package com.example.trace.post.dto.post;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
