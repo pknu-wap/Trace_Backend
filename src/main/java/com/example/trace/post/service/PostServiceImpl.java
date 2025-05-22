@@ -8,14 +8,17 @@ import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
+import com.example.trace.post.dto.cursor.CursorResponse;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
-import com.example.trace.post.dto.PostUpdateDto;
+import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
-import com.example.trace.post.dto.PostCreateDto;
-import com.example.trace.post.dto.PostDto;
+import com.example.trace.post.dto.post.PostCreateDto;
+import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -127,6 +131,58 @@ public class PostServiceImpl implements PostService {
         postDto.setOwner(post.getUser().getProviderId().equals(providerId));
 
         return postDto;
+    }
+
+
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String providerId) {
+        // 커서 요청 처리
+        int size = request.getSize() != null ? request.getSize() : 10;
+
+        String postType = null;
+        if (request.getPostType() != null && !request.getPostType().isEmpty()) {
+            try {
+                postType = request.getPostType();
+            } catch (IllegalArgumentException e) {
+                // 잘못된 PostType 입력 시 예외 처리
+            }
+        }
+
+        // 게시글 조회
+        List<PostFeedDto> posts;
+        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
+            // 첫 페이지 조회
+            posts = postRepository.findPostsWithCursor(null,null, size + 1,postType);
+        } else {
+            // 다음 페이지 조회
+            posts = postRepository.findPostsWithCursor(
+                    request.getCursorDateTime(), request.getCursorId(), size + 1, postType );
+        }
+
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        // 커서 메타데이터 생성
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
     }
 
     @Override
