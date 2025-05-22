@@ -27,6 +27,8 @@ repositories {
 	mavenCentral()
 }
 
+
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -56,6 +58,31 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// QueryDSL
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+}
+
+
+// 최신 방식으로 querydsl 디렉토리 지정
+def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
+
+// 소스 세트 설정
+sourceSets {
+	main.java.srcDirs += [ querydslDir ]
+}
+
+// 자바 컴파일러 설정
+tasks.withType(JavaCompile).configureEach {
+	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+
+// clean 태스크 설정
+clean {
+	delete querydslDir
 }
 
 tasks.named('test') {

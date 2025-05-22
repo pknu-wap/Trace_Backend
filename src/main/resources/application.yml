@@ -3,7 +3,7 @@ spring:
   application:
     name: Trace
   profiles:
-    active: local
+    active: dev
 
 # AWS S3 설정
 cloud:

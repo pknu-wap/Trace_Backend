@@ -1,4 +1,4 @@
-package com.example.trace.post.dto;
+package com.example.trace.post.dto.post;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
