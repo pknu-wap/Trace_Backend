@@ -144,7 +144,7 @@ public class PostServiceImpl implements PostService {
             try {
                 postType = request.getPostType();
             } catch (IllegalArgumentException e) {
-                // 잘못된 PostType 입력 시 예외 처리
+                throw new PostException(PostErrorCode.INVALID_POST_TYPE);
             }
         }
 
