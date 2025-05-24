@@ -37,10 +37,14 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Comment parent;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
     @Builder.Default
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent")
     private List<Comment> children = new ArrayList<>();
 
     private String content;
@@ -53,5 +57,8 @@ public class Comment {
         this.children.add(child);
     }
 
+    public void removeSelf() {
+        this.isDeleted = true;
+    }
 
 }

@@ -22,7 +22,7 @@ public class CursorResponse<T> {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "게시글 커서 메타 정보")
+    @Schema(description = "커서 메타 정보")
     public static class CursorMeta {
         @Schema(description = "커서 날짜 및 시간", example = "2025-05-22T08:26:36.025Z")
         private LocalDateTime dateTime;
