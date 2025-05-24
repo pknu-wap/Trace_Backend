@@ -43,14 +43,14 @@ public class EmotionService {
         Long gratefulCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.GRATEFUL);
         Long impressiveCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.IMPRESSIVE);
         Long touchingCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.TOUCHING);
-        Long likableCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.LIKABLE);
+        Long likeableCount = emotionRepository.countByPostIdAndEmotionType(postId, EmotionType.LIKEABLE);
 
         return EmotionCountDto.builder()
                 .heartwarmingCount(heartwarmingCount)
                 .gratefulCount(gratefulCount)
                 .impressiveCount(impressiveCount)
                 .touchingCount(touchingCount)
-                .likableCount(likableCount)
+                .likableCount(likeableCount)
                 .build();
     }
 }
