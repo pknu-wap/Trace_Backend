@@ -27,6 +27,9 @@ public class DailyMission {
 
     private LocalDate date;
 
+    @Column(nullable = false)
+    private int changeCount = 0;
+
     public DailyMission() {
     }
 
@@ -34,8 +37,20 @@ public class DailyMission {
         this.user = user;
         this.mission = mission;
         this.date = date;
+        this.changeCount = 0;
     }
 
+    public void incrementChangeCount() {
+        this.changeCount++;
+    }
+
+    public int getChangeCount() {
+        return this.changeCount;
+    }
+
+    public void setChangeCount(int changeCount) {
+        this.changeCount = changeCount;
+    }
 
     // Getter & Setter
     public Long getId() { return id; }

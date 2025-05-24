@@ -2,42 +2,33 @@ package com.example.trace.mission.dto;
 
 import com.example.trace.mission.mission.DailyMission;
 
-import java.time.LocalDate;
-
 public class DailyMissionResponse {
-    private Long missionId;
     private String content;
-    private LocalDate date;
+    private int remainingChanges;
 
     public DailyMissionResponse() {}
 
-    public DailyMissionResponse(Long missionId, String content, LocalDate date) {
-        this.missionId = missionId;
+    public DailyMissionResponse(String content, int remainingChanges) {
         this.content = content;
-        this.date = date;
+        this.remainingChanges = remainingChanges;
     }
 
-    public static DailyMissionResponse fromEntity(DailyMission mission) {
+    public static DailyMissionResponse fromEntity(DailyMission mission, int remainingChanges) {
         if (mission == null || mission.getMission() == null) {
             throw new IllegalArgumentException("유효하지 않은 미션 데이터입니다.");
         }
         
         return new DailyMissionResponse(
-                mission.getMission().getId(),
                 mission.getMission().getDescription(),
-                mission.getDate()
+                remainingChanges
         );
-    }
-
-    public Long getMissionId() {
-        return missionId;
     }
 
     public String getContent() {
         return content;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public int getRemainingChanges() {
+        return remainingChanges;
     }
 }

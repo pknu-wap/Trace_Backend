@@ -11,8 +11,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/missions")
@@ -32,7 +30,8 @@ public class DailyMissionController {
             Optional<DailyMission> dailyMissionOptional = missionService.getTodaysMissionByProviderId(providerId);
             
             if (dailyMissionOptional.isPresent()) {
-                return ResponseEntity.ok(DailyMissionResponse.fromEntity(dailyMissionOptional.get()));
+                int remainingChanges = missionService.getRemainingChanges(providerId);
+                return ResponseEntity.ok(DailyMissionResponse.fromEntity(dailyMissionOptional.get(), remainingChanges));
             } else {
                 return ResponseEntity.noContent().build();
             }
@@ -46,36 +45,16 @@ public class DailyMissionController {
      * 일일 미션을 변경합니다. 하루 최대 10번까지 변경 가능합니다.
      */
     @PostMapping("/change")
-    public ResponseEntity<?> changeDailyMission(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+    public ResponseEntity<DailyMissionResponse> changeDailyMission(@AuthenticationPrincipal PrincipalDetails principalDetails) {
         try {
             String providerId = principalDetails.getUser().getProviderId();
             DailyMission changedMission = missionService.changeDailyMission(providerId);
+            int remainingChanges = missionService.getRemainingChanges(providerId);
             
-            // 변경된 미션과 남은 변경 횟수를 함께 반환
-            Map<String, Object> response = new HashMap<>();
-            response.put("mission", DailyMissionResponse.fromEntity(changedMission));
-            response.put("remainingChanges", missionService.getRemainingChanges(providerId));
-            
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(DailyMissionResponse.fromEntity(changedMission, remainingChanges));
         } catch (Exception e) {
             log.error("미션 변경 오류", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * 남은 미션 변경 횟수를 조회합니다.
-     */
-    @GetMapping("/changes/remaining")
-    public ResponseEntity<Map<String, Integer>> getRemainingChanges(@AuthenticationPrincipal PrincipalDetails principalDetails) {
-        try {
-            String providerId = principalDetails.getUser().getProviderId();
-            Map<String, Integer> response = new HashMap<>();
-            response.put("remainingChanges", missionService.getRemainingChanges(providerId));
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("남은 변경 횟수 조회 오류", e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }
