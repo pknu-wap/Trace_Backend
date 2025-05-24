@@ -1,7 +1,9 @@
 package com.example.trace.post.repository;
 
+import com.example.trace.post.domain.QComment;
 import com.example.trace.post.domain.QPost;
 import com.example.trace.post.domain.QPostImage;
+import com.example.trace.post.dto.comment.CommentDto;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -12,7 +14,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 import static com.example.trace.post.domain.QPost.post;
 
@@ -36,6 +38,70 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
         return post.createdAt.lt(cursorDateTime)
                 .or(post.createdAt.eq(cursorDateTime).and(post.id.lt(cursorId)));
     }
+
+
+
+    public List<Long> findParentCommentsIdWithCursor(
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            Long postId,
+            int size,
+            String providerId
+    ){
+        QPost post = QPost.post;
+        QComment comment = QComment.comment;
+
+        List<Long> parentCommentIds = queryFactory
+                .select(comment.id)
+                .from(comment)
+                .where(
+                        comment.post.id.eq(postId),
+                        comment.parent.isNull(), // 부모 댓글만
+                        cursorCondition(cursorDateTime, cursorId)
+                )
+                .orderBy(comment.createdAt.desc(), comment.id.desc())
+                .limit(size)
+                .fetch();
+
+        if (parentCommentIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return parentCommentIds;
+    }
+
+    @Override
+    public List<CommentDto> findComments(
+            List<Long> parentCommentIds,
+            String providerId
+    ){
+        QComment comment = QComment.comment;
+
+        List<CommentDto> allComments = queryFactory
+                .select(Projections.constructor(CommentDto.class,
+                        comment.post.id.as("postId"),
+                        comment.user.providerId,
+                        comment.id.as("commentId"),
+                        comment.parent.id.as("parentId"),
+                        comment.user.nickname,
+                        comment.user.profileImageUrl,
+                        comment.content,
+                        comment.createdAt,
+                        comment.user.providerId.eq(providerId).as("isOwner")
+                ))
+                .from(comment)
+                .leftJoin(comment.user)
+                .where(
+                        comment.id.in(parentCommentIds).or(comment.parent.id.in(parentCommentIds))
+                )
+                .orderBy(comment.parent.id.asc().nullsFirst(),
+                        comment.createdAt.asc())
+                .fetch();
+
+
+        return allComments;
+    }
+
 
 
 
