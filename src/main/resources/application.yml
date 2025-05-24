@@ -127,7 +127,7 @@ spring:
 
   sql:
     init:
-      mode: always
+      mode: never
       data-locations: classpath:db/data.sql
 
   # H2 데이터베이스 설정
@@ -142,8 +142,7 @@ spring:
     console:
       enabled: true
       path: /h2-console
-      settings:
-        web-allow-others: false
+
 
   jpa:
     hibernate:
