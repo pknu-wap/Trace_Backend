@@ -2,6 +2,8 @@ package com.example.trace.mission.mission;
 
 import com.example.trace.emotion.Emotion;
 import com.example.trace.user.User;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -13,12 +15,14 @@ public class DailyMission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Mission mission;
 
     private LocalDate date;
