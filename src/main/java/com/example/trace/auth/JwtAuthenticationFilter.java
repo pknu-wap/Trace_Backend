@@ -5,15 +5,12 @@ import com.example.trace.global.errorcode.TokenErrorCode;
 import com.example.trace.global.exception.TokenException;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
-import com.example.trace.Util.HttpResponseUtil;
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.Util.RedisUtil;
 import com.example.trace.auth.repository.UserRepository;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,10 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 인증 객체가 필요 없는 경로 패턴을 정의
     private final List<String> excludePathPatterns = List.of(
-            "/auth/oauth/*",
-            "/api/v1/*",
-            "/api/v1/auth/oauth/login",
-            "/api/v1/auth/oauth/signup",
             "/auth/oauth/**",
             "/h2-console/**",
             "/api/v1/api/user/*",
