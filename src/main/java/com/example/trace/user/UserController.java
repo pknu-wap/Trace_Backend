@@ -2,6 +2,8 @@ package com.example.trace.user;
 
 import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.Util.RedisUtil;
+import com.example.trace.file.FileType;
+import com.example.trace.file.S3UploadService;
 import com.example.trace.user.dto.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,8 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.trace.user.dto.UpdateUserRequest;
+import org.springframework.web.multipart.MultipartFile;
 
-
+import java.io.IOException;
 
 
 @RestController
@@ -26,6 +29,7 @@ import com.example.trace.user.dto.UpdateUserRequest;
 public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final S3UploadService s3UploadService;
 
 
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 가져옵니다.")
@@ -46,13 +50,25 @@ public class UserController {
     }
 
     @Operation(summary = "유저 정보 수정", description = "닉네임 및 프로필 이미지를 수정합니다.")
-    @PutMapping
-    public ResponseEntity<UserDto> updateUserInfo(@RequestBody UpdateUserRequest request, HttpServletRequest httpRequest) {
+    @PutMapping(consumes = "multipart/form-data")
+    public ResponseEntity<UserDto> updateUserInfo(
+            @RequestPart("user") UpdateUserRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            HttpServletRequest httpRequest) throws IOException {
+
         String token = jwtUtil.resolveAccessToken(httpRequest);
         String providerId = jwtUtil.getProviderId(token);
-        UserDto updatedUser = userService.updateUserInfo(providerId, request);
+
+        // 프로필 이미지 S3 업로드 후 URL 획득
+        String imageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            imageUrl = s3UploadService.saveFile(profileImage, FileType.PROFILE, providerId);
+        }
+
+        UserDto updatedUser = userService.updateUserInfo(providerId, request, imageUrl);
         return ResponseEntity.ok(updatedUser);
     }
+
 
 
     @Operation(summary = "로그아웃", description = "로그아웃 합니다.")

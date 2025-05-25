@@ -27,7 +27,7 @@ public class UserService {
         return new UserDto().fromEntity(user);
     }
 
-    public UserDto updateUserInfo(String providerId, UpdateUserRequest request) {
+    public UserDto updateUserInfo(String providerId, UpdateUserRequest request, String imageUrl) {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -37,18 +37,24 @@ public class UserService {
             if (!newNickname.equals(user.getNickname()) && userRepository.existsByNickname(newNickname)) {
                 throw new IllegalArgumentException("Nickname is already in use.");
             }
-            user.setNickname(newNickname);
+            user.updateNickname(newNickname);
         }
 
-        if (request.getProfileImageUrl() != null) {
-            user.setProfileImageUrl(request.getProfileImageUrl());
+        if (imageUrl != null) {
+            user.updateProfileImageUrl(imageUrl);
+        }
+
+        if (request.getProfileImageUrl() == null && imageUrl == null) {
+            // 명시적으로 null이 들어온 경우 → 프로필 사진 제거
+            user.updateProfileImageUrl(null);
+        } else if (imageUrl != null) {
+            // 새 이미지 업로드가 있는 경우 → 새 이미지로 변경
+            user.updateProfileImageUrl(imageUrl);
         }
 
         userRepository.save(user);
         return new UserDto().fromEntity(user);
     }
-
-
 
     public void logout(String accessToken) {
         String providerId = jwtUtil.getProviderId(accessToken);

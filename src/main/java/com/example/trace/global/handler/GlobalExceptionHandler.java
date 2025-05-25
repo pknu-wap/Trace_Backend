@@ -4,6 +4,7 @@ import com.example.trace.global.errorcode.*;
 import com.example.trace.global.exception.*;
 import com.example.trace.global.response.ErrorResponse;
 import com.example.trace.global.response.TokenErrorResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -80,5 +81,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .message(errorCode.getMessage())
                 .build();
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    }
+
 
 }
