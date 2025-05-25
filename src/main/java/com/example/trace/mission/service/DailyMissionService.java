@@ -101,17 +101,7 @@ public class DailyMissionService {
         return MAX_CHANGES_PER_DAY - missionOpt.get().getChangeCount();
     }
     
-    @Transactional
-    @Scheduled(cron = "0 0 0 * * *")
-    public void resetChangeCount() {
-        try {
-            System.out.println("Resetting change count for date: " + LocalDate.now());
-            dailyMissionRepository.resetChangeCount(LocalDate.now());
-            System.out.println("Successfully reset change count");
-        } catch (Exception e) {
-            System.err.println("Error resetting change count: " + e.getMessage());
-        }
-    }
+
 
     public Optional<DailyMission> getTodaysMission(User user) {
         return dailyMissionRepository.findByUserAndDate(user, LocalDate.now());
