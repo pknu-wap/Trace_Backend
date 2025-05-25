@@ -17,6 +17,7 @@ public class EmotionService {
     private final EmotionRepository emotionRepository;
     private final PostRepository postRepository;
 
+
     public EmotionResponse toggleEmotion(Long postId,User user, EmotionType emotionType) {
         Optional<Emotion> existingEmotion = emotionRepository
                 .findByPostIdAndUserAndEmotionType(postId,user, emotionType);
@@ -52,5 +53,12 @@ public class EmotionService {
                 .touchingCount(touchingCount)
                 .likableCount(likeableCount)
                 .build();
+    }
+
+    public EmotionType getYourEmotion(Long postId, User user){
+        Emotion yourEmotion = emotionRepository.findByPostIdAndUser(postId,user)
+                .orElse(null);
+        EmotionType yourEmotionType = yourEmotion.getEmotionType();
+        return yourEmotionType;
     }
 }
