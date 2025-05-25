@@ -44,6 +44,13 @@ public class DailyMission {
         this.changeCount++;
     }
 
+    public DailyMission changeMission(Mission newMission) {
+        DailyMission newDailyMission = new DailyMission(this.user, newMission, this.date);
+        newDailyMission.changeCount = this.changeCount;  // 이전 변경 횟수 유지
+        newDailyMission.incrementChangeCount();          // 현재 변경 횟수 증가
+        return newDailyMission;
+    }
+
     public int getChangeCount() {
         return this.changeCount;
     }

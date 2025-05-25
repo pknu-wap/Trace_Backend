@@ -81,11 +81,8 @@ public class DailyMissionService {
             throw new RuntimeException("다른 미션을 찾을 수 없습니다. 나중에 다시 시도해주세요.");
         }
         
-        int currentChangeCount = currentMission.getChangeCount();
         dailyMissionRepository.delete(currentMission);
-        
-        DailyMission newDailyMission = new DailyMission(user, newMission, today);
-        newDailyMission.incrementChangeCount();
+        DailyMission newDailyMission = currentMission.changeMission(newMission);
         return dailyMissionRepository.save(newDailyMission);
     }
     
