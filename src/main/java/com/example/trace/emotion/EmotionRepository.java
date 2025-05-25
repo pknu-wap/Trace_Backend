@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface EmotionRepository extends JpaRepository<Emotion, Long> {
     Optional<Emotion> findByPostIdAndUserAndEmotionType(Long postId, User user, EmotionType emotionType);
     Long countByPostIdAndEmotionType(Long postId, EmotionType emotionType);
-    Optional<Emotion> findByPostIdAndUser(Long postId, User user);
+    Emotion findByPostIdAndUser(Long postId, User user);
 }
