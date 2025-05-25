@@ -85,7 +85,7 @@ public class DailyMissionService {
         dailyMissionRepository.delete(currentMission);
         
         DailyMission newDailyMission = new DailyMission(user, newMission, today);
-        newDailyMission.setChangeCount(currentChangeCount + 1);
+        newDailyMission.incrementChangeCount();
         return dailyMissionRepository.save(newDailyMission);
     }
     
