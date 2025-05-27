@@ -114,8 +114,8 @@ public class PostController {
     public ResponseEntity<PostDto> getPost(
             @PathVariable Long id,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        String providerId = principalDetails.getUser().getProviderId();
-        PostDto post = postService.getPostById(id,providerId);
+        User user = principalDetails.getUser();
+        PostDto post = postService.getPostById(id,user);
         return ResponseEntity.ok(post);
     }
 

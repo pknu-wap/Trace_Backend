@@ -7,6 +7,7 @@ import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
+import com.example.trace.user.User;
 
 
 public interface PostService {
@@ -15,7 +16,7 @@ public interface PostService {
 
     PostDto createPost(PostCreateDto postCreateDto, String ProviderId, VerificationDto verificationDto);
 
-    PostDto getPostById(Long id,String providerId);
+    PostDto getPostById(Long id, User user);
 
     PostDto updatePost(Long id, PostUpdateDto postUpdateDto,String providerId);
     CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String requesterId);

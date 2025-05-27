@@ -1,6 +1,7 @@
 package com.example.trace.post.service;
 
 import com.example.trace.emotion.EmotionService;
+import com.example.trace.emotion.EmotionType;
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.PostException;
@@ -28,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -117,18 +117,21 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto getPostById (Long id, String providerId){
-        Post post = postRepository.findById(id)
+    public PostDto getPostById (Long postId, User user){
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
         post.incrementViewCount();
 
-        EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(id);
+        EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(postId);
+
+        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,user);
 
         PostDto postDto = PostDto.fromEntity(post);
 
         postDto.setEmotionCount(emotionCountDto);
-        postDto.setOwner(post.getUser().getProviderId().equals(providerId));
+        postDto.setOwner(post.getUser().equals(user));
+        postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
     }
@@ -144,7 +147,7 @@ public class PostServiceImpl implements PostService {
             try {
                 postType = request.getPostType();
             } catch (IllegalArgumentException e) {
-                // 잘못된 PostType 입력 시 예외 처리
+                throw new PostException(PostErrorCode.INVALID_POST_TYPE);
             }
         }
 

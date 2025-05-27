@@ -4,9 +4,7 @@ package com.example.trace.emotion;
 import com.example.trace.post.domain.Post;
 import com.example.trace.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
@@ -16,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "emotions")
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Emotion {

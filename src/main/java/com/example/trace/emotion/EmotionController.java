@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class EmotionController {
 
     private final EmotionService emotionServcice;
-    @PostMapping()
+    @PostMapping("/{postId}")
     @Operation(
             summary = "게시물 감정 표현",
             description = "게시물에 대한 감정 표현을 추가하거나 제거합니다."
@@ -34,14 +34,12 @@ public class EmotionController {
             )
     )
     public EmotionResponse toggleReaction(
+            @PathVariable Long postId,
             @RequestBody EmotionRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
 
         User user = principalDetails.getUser();
-        Long postId = request.getPostId();
-        String emotionType = request.getEmotionType();
-
-        EmotionType type = EmotionType.valueOf(emotionType.toUpperCase());
+        EmotionType type = request.getEmotionType();
 
         EmotionResponse emotionResponse = emotionServcice.toggleEmotion(postId,user, type);
         return emotionResponse;
