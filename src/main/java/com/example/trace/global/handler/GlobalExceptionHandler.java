@@ -23,6 +23,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         AuthErrorCode authErrorCode = e.getAuthErrorCode();
         return handleExceptionInternal(authErrorCode);
     }
+    @ExceptionHandler(MissionException.class)
+    public ResponseEntity<Object> handleMissionException(MissionException e) {
+        MissionErrorCode missionErrorCode = e.getMissionErrorCode();
+        return handleExceptionInternal(missionErrorCode);
+    }
+
 
     @ExceptionHandler(SignUpException.class)
     public ResponseEntity<Object> handleSignUpException(SignUpException e) {
@@ -57,6 +63,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> handleExceptionInternal(AuthErrorCode authErrorCode) {
         return ResponseEntity.status(authErrorCode.getHttpStatus())
                 .body(makeErrorResponse(authErrorCode));
+    }
+
+    private ResponseEntity<Object> handleExceptionInternal(MissionErrorCode missionErrorCode) {
+        return ResponseEntity.status(missionErrorCode.getHttpStatus())
+                .body(makeErrorResponse(missionErrorCode));
     }
 
     private ResponseEntity<Object> handleExceptionInternal(SignUpErrorCode signUpErrorCode) {

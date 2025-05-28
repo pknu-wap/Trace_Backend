@@ -37,6 +37,7 @@ springdoc:
     - /user/**
     - /verification/**
     - /comments/**
+    - /missions/**
 
 
 
@@ -91,7 +92,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
@@ -141,8 +142,7 @@ spring:
     console:
       enabled: true
       path: /h2-console
-      settings:
-        web-allow-others: false
+
 
   jpa:
     hibernate:
