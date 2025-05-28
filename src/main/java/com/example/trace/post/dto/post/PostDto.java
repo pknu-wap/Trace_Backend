@@ -4,6 +4,7 @@ import com.example.trace.emotion.EmotionType;
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
+import com.example.trace.post.domain.PostType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ public class PostDto {
     private Long id;
 
     @Schema(description = "게시글 타입", example = "FREE, GOOD_DEED, MISSION")
-    private String postType;
+    private PostType postType;
 
     @Schema(description = "조회수", example = "100")
     private Long viewCount;
@@ -78,7 +79,7 @@ public class PostDto {
                 
         return PostDto.builder()
                 .id(post.getId())
-                .postType(post.getPostType().name())
+                .postType(post.getPostType())
                 .viewCount(post.getViewCount())
                 .title(post.getTitle())
                 .content(post.getContent())
