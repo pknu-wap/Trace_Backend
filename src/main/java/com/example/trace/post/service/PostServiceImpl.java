@@ -51,6 +51,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
         Post post = Post.builder()
+                .postType(postCreateDto.getPostType())
                 .title(postCreateDto.getTitle())
                 .content(postCreateDto.getContent())
                 .user(user)
@@ -81,7 +82,7 @@ public class PostServiceImpl implements PostService {
         }
 
         Post post = Post.builder()
-                .postType(PostType.valueOf(postCreateDto.getPostType()))
+                .postType(postCreateDto.getPostType())
                 .viewCount(0L)
                 .title(postCreateDto.getTitle())
                 .content(postCreateDto.getContent())

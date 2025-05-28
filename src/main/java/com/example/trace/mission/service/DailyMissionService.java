@@ -2,11 +2,18 @@ package com.example.trace.mission.service;
 
 import com.example.trace.global.errorcode.MissionErrorCode;
 import com.example.trace.global.exception.MissionException;
+import com.example.trace.gpt.dto.VerificationDto;
+import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.DailyMissionResponse;
+import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.MissionRepository;
+import com.example.trace.post.domain.PostType;
+import com.example.trace.post.dto.post.PostCreateDto;
+import com.example.trace.post.dto.post.PostDto;
+import com.example.trace.post.service.PostService;
 import com.example.trace.user.User;
 import com.example.trace.user.UserService;
 import com.example.trace.auth.repository.UserRepository;
@@ -30,11 +37,13 @@ public class DailyMissionService {
     private final DailyMissionRepository dailyMissionRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final PostVerificationService postVerificationService;
+    private final PostService postService;
     
     private static final int MAX_CHANGES_PER_DAY = 10;
 
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 10 23 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
@@ -126,5 +135,17 @@ public class DailyMissionService {
 
         return DailyMissionResponse.fromEntity(todayDailyMission);
     }
+
+    public PostDto verifySubmissionAndCreatePost(String providerId, SubmitDailyMissionDto submitDto){
+        VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, providerId);
+        PostCreateDto postCreateDto = PostCreateDto.builder()
+                .postType(PostType.GOOD_DEED)
+                .title(submitDto.getTitle())
+                .content(submitDto.getContent())
+                .imageFiles(submitDto.getImageFiles())
+                .build();
+        return postService.createPost(postCreateDto,providerId,verificationDto);
+    }
+
 }
 

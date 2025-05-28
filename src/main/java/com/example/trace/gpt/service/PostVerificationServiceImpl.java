@@ -1,11 +1,16 @@
 package com.example.trace.gpt.service;
 
 import com.example.trace.global.errorcode.GptErrorCode;
+import com.example.trace.global.errorcode.MissionErrorCode;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.GptException;
+import com.example.trace.global.exception.MissionException;
 import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
+import com.example.trace.mission.dto.SubmitDailyMissionDto;
+import com.example.trace.mission.mission.DailyMission;
+import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.user.User;
 import com.example.trace.auth.repository.UserRepository;
@@ -23,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +48,7 @@ public class PostVerificationServiceImpl implements PostVerificationService {
 
     private final OpenAiService openAiService;
     private final UserRepository userRepository;
+    private final DailyMissionRepository dailyMissionRepository;
     private static final String MODEL = "gpt-4o";
     
     @Value("${openai.api.key}")
@@ -49,6 +56,47 @@ public class PostVerificationServiceImpl implements PostVerificationService {
     
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public VerificationDto verifyDailyMission(SubmitDailyMissionDto submitDto,String providerId){
+        LocalDate today = LocalDate.now();
+
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(()->new MissionException(MissionErrorCode.USER_NOT_FOUND));
+
+        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,today)
+                .orElseThrow(()->new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+
+        if (submitDto.getContent() == null || submitDto.getContent().isEmpty()) {
+            throw new PostException(PostErrorCode.CONTENT_EMPTY);
+        }
+        if (submitDto.getTitle() == null || submitDto.getTitle().isEmpty()) {
+            throw new PostException(PostErrorCode.TITLE_EMPTY);
+        }
+
+        String requestContent = submitDto.getContent();
+        List<MultipartFile> images = submitDto.getImageFiles();
+
+        String assignedContent = assignedDailyMission.getMission().getDescription();
+
+        if (images == null || images.isEmpty()) {
+            VerificationDto result = verifyMissionTextOnly(requestContent, assignedContent);
+            if (!result.isTextResult()) {
+                String failureReason = result.getFailureReason();
+                throw new GptException(GptErrorCode.WRONG_CONTENT, failureReason);
+            }
+            return result;
+        } else {
+            VerificationDto result = verifyMissionTextAndImages(requestContent, assignedContent, images);
+            if (!result.isTextResult() || !result.isImageResult()) {
+                String failureReason = result.getFailureReason();
+                throw new GptException(GptErrorCode.WRONG_CONTENT, failureReason);
+            }
+            return result;
+        }
+
+
+    }
+
 
     @Override
     public VerificationDto verifyPost(PostCreateDto postCreateDto,String providerId) {
@@ -288,6 +336,189 @@ public class PostVerificationServiceImpl implements PostVerificationService {
                 String response = openAiService.createChatCompletion(request)
                         .getChoices().get(0).getMessage().getContent();
                 
+                return parseVerificationResponse(response);
+            }
+        } catch (Exception e) {
+            log.error("Error verifying text and images with OpenAI", e);
+            return VerificationDto.bothFailure("Failed to verify content: " + e.getMessage());
+        }
+    }
+
+    private VerificationDto verifyMissionTextOnly(String content, String missionDescription) {
+        List<ChatMessage> messages = new ArrayList<>();
+
+        String systemPrompt = "You are an AI assistant tasked with verifying if the given submission is related to the assigned mission. " +
+                "Respond in the following format exactly:\n" +
+                "text_result: true/false\n" +
+                "success_reason: [reason for success, only if text_result is true]\n" +
+                "failure_reason: [reason for failure, only if text_result is false]";
+
+        messages.add(new ChatMessage(ChatMessageRole.SYSTEM.value(), systemPrompt));
+
+        String userPrompt = "Please verify if the following submission is related to the assigned mission:\n\n" +
+                "Assigned Mission: " + missionDescription + "\n\n" +
+                "User Submission: " + content;
+        messages.add(new ChatMessage(ChatMessageRole.USER.value(), userPrompt));
+
+        // 기존 verifyTextOnly와 동일한 처리 로직
+        ChatCompletionRequest request = ChatCompletionRequest.builder()
+                .model(MODEL)
+                .messages(messages)
+                .build();
+
+        try {
+            String response = openAiService.createChatCompletion(request).getChoices().get(0).getMessage().getContent();
+            return parseVerificationResponse(response);
+        } catch (Exception e) {
+            log.error("Error verifying mission text with OpenAI", e);
+            return VerificationDto.textOnlyFailure("Failed to verify mission text: " + e.getMessage());
+        }
+    }
+
+    private VerificationDto verifyMissionTextAndImages(String content, String missionDescription, List<MultipartFile> images) {
+        try {
+            List<ChatMessage> messages = new ArrayList<>();
+
+            String systemPrompt = "You are an AI assistant tasked with verifying if the given submission (both text and images) is related to the assigned mission. " +
+                    "Consider both the textual content and visual elements when making your assessment. " +
+                    "Respond in the following format exactly:\n" +
+                    "text_result: true/false\n" +
+                    "image_result: true/false\n" +
+                    "success_reason: [reason for success, only if any result is true]\n" +
+                    "failure_reason: [reason for failure, only if any result is false]";
+
+            messages.add(new ChatMessage(ChatMessageRole.SYSTEM.value(), systemPrompt));
+
+            // User message with text content
+            String userPrompt = "Please verify if the following submission is related to the assigned mission:\n\n" +
+                    "Assigned Mission: " + missionDescription + "\n\n" +
+                    "Please check:\n" +
+                    "1. Does the text content relate to the assigned mission?\n" +
+                    "2. Do the images support and relate to both the text content and the assigned mission?\n\n" +
+                    "Text Content: " + content;
+
+            ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), userPrompt);
+            messages.add(userMessage);
+
+            // We'll need to build a multimodal request
+            // Since older versions of the client don't support multimodal content directly,
+            // we'll need to use a direct REST call for the images part
+
+            if (images != null && !images.isEmpty()) {
+                // For multimodal requests with images, we need to use direct REST API call
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + openaiApiKey);
+
+                // API request body
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("model", MODEL);
+                requestBody.put("max_tokens", 500);
+
+                // Messages array
+                List<Map<String, Object>> apiMessages = new ArrayList<>();
+
+                // System message
+                Map<String, Object> systemMessage = new HashMap<>();
+                systemMessage.put("role", "system");
+                systemMessage.put("content", systemPrompt);
+                apiMessages.add(systemMessage);
+
+                // User message with text and images
+                Map<String, Object> apiUserMessage = new HashMap<>();
+                apiUserMessage.put("role", "user");
+
+                List<Map<String, Object>> contentItems = new ArrayList<>();
+
+                // Text content
+                Map<String, Object> textContent = new HashMap<>();
+                textContent.put("type", "text");
+                textContent.put("text", userPrompt);
+                contentItems.add(textContent);
+
+                // Image content
+                for (MultipartFile image : images) {
+                    try {
+                        String base64Image = encodeMultipartFileToBase64(image);
+                        if (base64Image != null) {
+                            Map<String, Object> imageContent = new HashMap<>();
+                            imageContent.put("type", "image_url");
+
+                            Map<String, String> imageUrl = new HashMap<>();
+                            imageUrl.put("url", "data:image/jpeg;base64," + base64Image);
+                            log.info("Image base64 length: {}", base64Image.length());
+
+                            imageContent.put("image_url", imageUrl);
+                            contentItems.add(imageContent);
+                        } else {
+                            log.warn("Failed to process image");
+                        }
+                    } catch (Exception e) {
+                        log.error("Error processing image", e);
+                    }
+                }
+
+                apiUserMessage.put("content", contentItems);
+                apiMessages.add(apiUserMessage);
+
+                requestBody.put("messages", apiMessages);
+
+                // Send API request
+                HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+                // Log request (without full base64 data)
+                try {
+                    String debugRequestBody = objectMapper.writeValueAsString(requestBody);
+
+                    if (debugRequestBody.contains("\"url\":\"data:image/jpeg;base64,")) {
+                        debugRequestBody = debugRequestBody.replaceAll(
+                                "(\"url\":\"data:image/jpeg;base64,)[^\"]+",
+                                "$1...[BASE64_DATA_LENGTH: " +
+                                        debugRequestBody.split("\"url\":\"data:image/jpeg;base64,")[1].split("\"")[0].length() +
+                                        "]..."
+                        );
+                    }
+
+                    log.info("OpenAI API Request: {}", debugRequestBody);
+                } catch (Exception e) {
+                    log.warn("Failed to log request body", e);
+                }
+
+                ResponseEntity<String> responseEntity = restTemplate.postForEntity(
+                        "https://api.openai.com/v1/chat/completions",
+                        request,
+                        String.class);
+
+                log.info("OpenAI API Response Status: {}", responseEntity.getStatusCode());
+
+                // Parse response
+                Map<String, Object> responseMap = objectMapper.readValue(responseEntity.getBody(), Map.class);
+
+                // Check for errors
+                if (responseMap.containsKey("error")) {
+                    Map<String, Object> error = (Map<String, Object>) responseMap.get("error");
+                    String errorMessage = (String) error.get("message");
+                    log.error("OpenAI API Error: {}", errorMessage);
+                    return VerificationDto.bothFailure("OpenAI API Error: " + errorMessage);
+                }
+
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                Map<String, Object> firstChoice = choices.get(0);
+                Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
+                String responseContent = (String) message.get("content");
+
+                return parseVerificationResponse(responseContent);
+            } else {
+                // For text-only requests, we can use the OpenAI client
+                ChatCompletionRequest request = ChatCompletionRequest.builder()
+                        .model(MODEL)
+                        .messages(messages)
+                        .maxTokens(500)
+                        .build();
+
+                String response = openAiService.createChatCompletion(request)
+                        .getChoices().get(0).getMessage().getContent();
+
                 return parseVerificationResponse(response);
             }
         } catch (Exception e) {

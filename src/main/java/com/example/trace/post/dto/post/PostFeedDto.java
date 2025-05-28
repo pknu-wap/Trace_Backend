@@ -1,5 +1,6 @@
 package com.example.trace.post.dto.post;
 
+import com.example.trace.post.domain.PostType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +19,7 @@ public class PostFeedDto {
     private Long postId;
 
     @Schema(description = "게시글 타입", example = "MISSION")
-    private String postType;
+    private PostType postType;
 
     @Schema(description = "게시글 제목", example = "제목")
     private String title;
