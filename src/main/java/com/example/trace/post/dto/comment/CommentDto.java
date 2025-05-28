@@ -58,7 +58,7 @@ public class CommentDto {
     // Projections.constructor용 생성자 (children 제외)
     public CommentDto(Long postId, String providerId, Long commentId, Long parentId,
                       String nickName, String userProfileImageUrl, String content,
-                      LocalDateTime createdAt, boolean isOwner) {
+                      LocalDateTime createdAt, boolean isOwner,boolean isDeleted) {
         this.postId = postId;
         this.providerId = providerId;
         this.commentId = commentId;
@@ -69,16 +69,17 @@ public class CommentDto {
         this.createdAt = createdAt;
         this.isOwner = isOwner;
         this.children = new ArrayList<>();
+        this.isDeleted = isDeleted;
     }
 
-    public static CommentDto fromEntity(Comment comment) {
+    public static CommentDto fromEntity(Comment comment,String providerId) {
         return CommentDto.builder()
                 .postId(comment.getPost().getId())
                 .providerId(comment.getUser().getProviderId())
                 .commentId(comment.getId())
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
-                .isDeleted(false)
-                .isOwner(true)
+                .isDeleted(comment.isDeleted())
+                .isOwner(comment.getUser().getProviderId().equals(providerId))
                 .nickName(comment.getUser().getNickname())
                 .userProfileImageUrl(comment.getUser().getProfileImageUrl())
                 .content(comment.getContent())
