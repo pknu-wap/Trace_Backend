@@ -3,7 +3,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ feature/jiseob/#88 ]
 #테스트6
 jobs:
   build:
