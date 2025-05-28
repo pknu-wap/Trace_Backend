@@ -15,6 +15,7 @@ import com.example.trace.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,15 +46,17 @@ public class CommentService {
                 .post(postToAddComment)
                 .content(commentCreateDto.getContent())
                 .user(user)
+                .isDeleted(false)
                 .build();
         commentRepository.save(comment);
 
         postToAddComment.addComment(comment);
 
-        return CommentDto.fromEntity(comment);
+        return CommentDto.fromEntity(comment,providerId);
     }
 
-    public void deleteComment(Long commentId, String ProviderId) {
+    @Transactional
+    public CommentDto deleteComment(Long commentId, String ProviderId) {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         Comment comment = commentRepository.findById(commentId)
@@ -62,10 +65,11 @@ public class CommentService {
             throw new PostException(PostErrorCode.COMMENT_DELETE_FORBIDDEN);
         }
         comment.removeSelf();
+        return CommentDto.fromEntity(comment,ProviderId);
     }
 
-    public CommentDto addChildrenComment(Long postId,Long commentId,CommentCreateDto commentCreateDto, String ProviderId){
-        User user = userRepository.findByProviderId(ProviderId)
+    public CommentDto addChildrenComment(Long postId,Long commentId,CommentCreateDto commentCreateDto, String providerId){
+        User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Comment parentComment = commentRepository.findById(commentId)
@@ -92,7 +96,7 @@ public class CommentService {
 
         parentComment.addChild(childrenComment);
 
-        return CommentDto.fromEntity(childrenComment);
+        return CommentDto.fromEntity(childrenComment,providerId);
     }
 
     public CursorResponse<CommentDto> getCommentsWithCursor(CommentCursorRequest request,Long postId, String providerId) {
@@ -161,7 +165,7 @@ public class CommentService {
         }
 
         // 3단계: 부모 댓글들을 생성 시간 순으로 정렬
-        parentComments.sort((c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt()));
+        parentComments.sort((c1, c2) -> c1.getCreatedAt().compareTo(c2.getCreatedAt()));
 
         // 4단계: 각 부모의 자식 댓글들도 정렬
         for (CommentDto parent : parentComments) {
