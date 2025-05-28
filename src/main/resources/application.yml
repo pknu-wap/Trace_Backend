@@ -3,7 +3,11 @@ spring:
   application:
     name: Trace
   profiles:
-    active: dev
+    active: local
+  # 한국 시간대 설정 추가
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
 
 # AWS S3 설정
 cloud:
@@ -15,7 +19,6 @@ cloud:
       auto: false
     stack:
       auto: false
-
 
 # SpringDoc 설정 추가
 springdoc:
@@ -39,16 +42,14 @@ springdoc:
     - /comments/**
     - /missions/**
 
-
-
-  # OAuth2 클라이언트 설정 - API 키 관리, 외부에 노출되면 안 됨
+# OAuth2 클라이언트 설정 - API 키 관리, 외부에 노출되면 안 됨
 oauth2:
   client:
     registration:
       kakao:
         client-id: ${KAKAO_CLIENT_ID}
     provider:
-     kakao:
+      kakao:
         jwks-uri: https://kauth.kakao.com/.well-known/jwks.json
 
 # JWT 설정
@@ -58,8 +59,7 @@ jwt:
     access-expiration-time: 3600000  # 1시간
     refresh-expiration-time: 604800000  # 7일
 
-
-  # 로깅 설정
+# 로깅 설정
 logging:
   level:
     root: INFO
@@ -70,7 +70,6 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
 
-
 ---
 
 # 개발 환경 설정
@@ -78,7 +77,6 @@ spring:
   config:
     activate:
       on-profile: dev
-
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -93,17 +91,18 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: create
+      # 한국 시간대 설정 추가
+      jdbc:
+        time_zone: Asia/Seoul
     properties:
       hibernate:
         format_sql: true
         show_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-
   sql:
     init:
       mode: always
-
 
 # 서버 설정
 server:
@@ -118,9 +117,9 @@ server:
   tomcat:
     basedir: ./temp  # Custom temp directory for Tomcat
 
-
 ---
-# 개발 환경 설정
+
+# 로컬 환경 설정
 spring:
   config:
     activate:
@@ -143,10 +142,12 @@ spring:
       enabled: true
       path: /h2-console
 
-
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
+      # 한국 시간대 설정 추가
+      jdbc:
+        time_zone: Asia/Seoul
     show-sql: true
     properties:
       hibernate:
@@ -168,4 +169,3 @@ server:
     include-exception: false
   tomcat:
     basedir: ./temp  # Custom temp directory for Tomcat
-
