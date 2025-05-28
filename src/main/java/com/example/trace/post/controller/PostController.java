@@ -37,7 +37,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
-    private final PostVerificationService postVerification;
+    private final PostVerificationService postVerificationService;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(summary = "게시글 작성", description = "게시글을 작성합니다.")
@@ -95,7 +95,7 @@ public class PostController {
             int maxImages = Math.min(imageFiles.size(), 5);
             postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
-        VerificationDto verificationDto = postVerification.verifyPost(postCreateDto, providerId);
+        VerificationDto verificationDto = postVerificationService.verifyPost(postCreateDto, providerId);
         PostDto postDto = postService.createPost(postCreateDto,providerId,verificationDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }
