@@ -50,8 +50,8 @@ public class CommentController {
             @PathVariable Long commentId,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         String providerId = principalDetails.getUser().getProviderId();
-        commentService.deleteComment(commentId, providerId);
-        return ResponseEntity.noContent().build();
+        CommentDto commentDto = commentService.deleteComment(commentId, providerId);
+        return ResponseEntity.ok(commentDto);
     }
 
     @Operation(summary = "대댓글 작성", description = "게시글에 대댓글을 작성합니다.")
