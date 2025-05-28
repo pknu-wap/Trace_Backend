@@ -1,15 +1,22 @@
 package com.example.trace.mission.controller;
 
+import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.AssignMissionRequest;
+import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.service.DailyMissionService;
 import com.example.trace.mission.dto.DailyMissionResponse;
 import com.example.trace.auth.dto.PrincipalDetails;
+import com.example.trace.post.dto.post.PostDto;
+import com.example.trace.post.service.PostService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 
 @RestController
@@ -45,6 +52,21 @@ public class DailyMissionController {
     public ResponseEntity<DailyMissionResponse> assignDailyMissionsToUserForTest(@RequestBody AssignMissionRequest request){
         String providerId = request.getProviderId();
         return ResponseEntity.ok(missionService.assignDailyMissionsToUserForTest(providerId));
+    }
+
+    @PostMapping("/submit")
+    public ResponseEntity<PostDto> submitDailyMission(
+            @RequestBody SubmitDailyMissionDto submitDto,
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
+            @AuthenticationPrincipal PrincipalDetails principalDetails){
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            // Limit to 5 images
+            int maxImages = Math.min(imageFiles.size(), 5);
+            submitDto.setImageFiles(imageFiles.subList(0, maxImages));
+        }
+        String providerId = principalDetails.getUser().getProviderId();
+        PostDto postDto = missionService.verifySubmissionAndCreatePost(providerId,submitDto);
+        return ResponseEntity.ok(postDto);
     }
 
 }
