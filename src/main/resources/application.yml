@@ -90,7 +90,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       # 한국 시간대 설정 추가
       jdbc:
         time_zone: Asia/Seoul
