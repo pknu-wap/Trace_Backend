@@ -12,12 +12,15 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.example.trace.post.domain.QComment.comment;
 import static com.example.trace.post.domain.QPost.post;
 
+@Slf4j
 public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
@@ -30,13 +33,22 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
         return postType != null ? post.postType.stringValue().eq(postType) : Expressions.TRUE;
     }
 
-    private BooleanExpression cursorCondition(LocalDateTime cursorDateTime, Long cursorId) {
+    private BooleanExpression postCursorCondition(LocalDateTime cursorDateTime, Long cursorId) {
         if (cursorDateTime == null || cursorId == null) {
             return Expressions.TRUE; // 첫 페이지
         }
         // 커서 이전의 데이터를 가져오는 조건
         return post.createdAt.lt(cursorDateTime)
                 .or(post.createdAt.eq(cursorDateTime).and(post.id.lt(cursorId)));
+    }
+
+    private BooleanExpression commentCursorCondition(LocalDateTime cursorDateTime, Long cursorId) {
+        if (cursorDateTime == null || cursorId == null) {
+            return Expressions.TRUE; // 첫 페이지
+        }
+        // 커서 이전의 데이터를 가져오는 조건
+        return comment.createdAt.gt(cursorDateTime)
+                .or(comment.createdAt.eq(cursorDateTime).and(comment.id.gt(cursorId)));
     }
 
 
@@ -57,16 +69,18 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .where(
                         comment.post.id.eq(postId),
                         comment.parent.isNull(), // 부모 댓글만
-                        cursorCondition(cursorDateTime, cursorId)
+                        commentCursorCondition(cursorDateTime, cursorId)
                 )
-                .orderBy(comment.createdAt.desc(), comment.id.desc())
+                .orderBy(comment.createdAt.asc(), comment.id.asc())
                 .limit(size)
                 .fetch();
 
         if (parentCommentIds.isEmpty()) {
             return Collections.emptyList();
         }
-
+        for(Long id : parentCommentIds){
+            log.info("부모 id {}",id);
+        }
         return parentCommentIds;
     }
 
@@ -87,7 +101,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                         comment.user.profileImageUrl,
                         comment.content,
                         comment.createdAt,
-                        comment.user.providerId.eq(providerId).as("isOwner")
+                        comment.user.providerId.eq(providerId).as("isOwner"),
+                        comment.isDeleted.as("isDeleted")
                 ))
                 .from(comment)
                 .leftJoin(comment.user)
@@ -164,7 +179,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                         postTypeEq(postType),
-                        cursorCondition(cursorDateTime, cursorId) // 커서 조건
+                        postCursorCondition(cursorDateTime, cursorId) // 커서 조건
                 )
                 .orderBy(post.createdAt.desc(), post.id.desc())
                 .limit(size + 1)
