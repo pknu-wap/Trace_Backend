@@ -1,6 +1,7 @@
 package com.example.trace.post.service;
 
 import com.example.trace.emotion.EmotionService;
+import com.example.trace.emotion.EmotionType;
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.PostException;
@@ -8,14 +9,17 @@ import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
+import com.example.trace.post.dto.cursor.CursorResponse;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
-import com.example.trace.post.dto.PostUpdateDto;
+import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
-import com.example.trace.post.dto.PostCreateDto;
-import com.example.trace.post.dto.PostDto;
+import com.example.trace.post.dto.post.PostCreateDto;
+import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -113,20 +117,75 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto getPostById (Long id, String providerId){
-        Post post = postRepository.findById(id)
+    public PostDto getPostById (Long postId, User user){
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
         post.incrementViewCount();
 
-        EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(id);
+        EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(postId);
+
+        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,user);
 
         PostDto postDto = PostDto.fromEntity(post);
 
         postDto.setEmotionCount(emotionCountDto);
-        postDto.setOwner(post.getUser().getProviderId().equals(providerId));
+        postDto.setOwner(post.getUser().equals(user));
+        postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
+    }
+
+
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String providerId) {
+        // 커서 요청 처리
+        int size = request.getSize() != null ? request.getSize() : 10;
+
+        String postType = null;
+        if (request.getPostType() != null && !request.getPostType().isEmpty()) {
+            try {
+                postType = request.getPostType();
+            } catch (IllegalArgumentException e) {
+                throw new PostException(PostErrorCode.INVALID_POST_TYPE);
+            }
+        }
+
+        // 게시글 조회
+        List<PostFeedDto> posts;
+        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
+            // 첫 페이지 조회
+            posts = postRepository.findPostsWithCursor(null,null, size + 1,postType);
+        } else {
+            // 다음 페이지 조회
+            posts = postRepository.findPostsWithCursor(
+                    request.getCursorDateTime(), request.getCursorId(), size + 1, postType );
+        }
+
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        // 커서 메타데이터 생성
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
     }
 
     @Override

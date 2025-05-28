@@ -129,7 +129,6 @@ spring:
   sql:
     init:
       mode: never
-      data-locations: classpath:db/data.sql
 
   # H2 데이터베이스 설정
   datasource:

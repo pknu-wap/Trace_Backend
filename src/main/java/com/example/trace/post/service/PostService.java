@@ -1,9 +1,13 @@
 package com.example.trace.post.service;
 
 import com.example.trace.gpt.dto.VerificationDto;
-import com.example.trace.post.dto.PostUpdateDto;
-import com.example.trace.post.dto.PostCreateDto;
-import com.example.trace.post.dto.PostDto;
+import com.example.trace.post.dto.cursor.CursorResponse;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.post.dto.post.PostFeedDto;
+import com.example.trace.post.dto.post.PostUpdateDto;
+import com.example.trace.post.dto.post.PostCreateDto;
+import com.example.trace.post.dto.post.PostDto;
+import com.example.trace.user.User;
 
 
 public interface PostService {
@@ -12,10 +16,10 @@ public interface PostService {
 
     PostDto createPost(PostCreateDto postCreateDto, String ProviderId, VerificationDto verificationDto);
 
-    PostDto getPostById(Long id,String providerId);
+    PostDto getPostById(Long id, User user);
 
     PostDto updatePost(Long id, PostUpdateDto postUpdateDto,String providerId);
-    
+    CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String requesterId);
     void deletePost(Long id, String providerId);
 
 } 

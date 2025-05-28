@@ -7,12 +7,20 @@ import com.example.trace.post.domain.Comment;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.dto.comment.CommentCreateDto;
 import com.example.trace.post.dto.comment.CommentDto;
+import com.example.trace.post.dto.cursor.CommentCursorRequest;
+import com.example.trace.post.dto.cursor.CursorResponse;
 import com.example.trace.post.repository.CommentRepository;
 import com.example.trace.post.repository.PostRepository;
 import com.example.trace.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -38,15 +46,17 @@ public class CommentService {
                 .post(postToAddComment)
                 .content(commentCreateDto.getContent())
                 .user(user)
+                .isDeleted(false)
                 .build();
         commentRepository.save(comment);
 
         postToAddComment.addComment(comment);
 
-        return CommentDto.fromEntity(comment);
+        return CommentDto.fromEntity(comment,providerId);
     }
 
-    public void deleteComment(Long commentId, String ProviderId) {
+    @Transactional
+    public CommentDto deleteComment(Long commentId, String ProviderId) {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         Comment comment = commentRepository.findById(commentId)
@@ -54,11 +64,12 @@ public class CommentService {
         if (!comment.getUser().getId().equals(user.getId())) {
             throw new PostException(PostErrorCode.COMMENT_DELETE_FORBIDDEN);
         }
-        commentRepository.delete(comment);
+        comment.removeSelf();
+        return CommentDto.fromEntity(comment,ProviderId);
     }
 
-    public CommentDto addChildrenComment(Long postId,Long commentId,CommentCreateDto commentCreateDto, String ProviderId){
-        User user = userRepository.findByProviderId(ProviderId)
+    public CommentDto addChildrenComment(Long postId,Long commentId,CommentCreateDto commentCreateDto, String providerId){
+        User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Comment parentComment = commentRepository.findById(commentId)
@@ -85,7 +96,84 @@ public class CommentService {
 
         parentComment.addChild(childrenComment);
 
-        return CommentDto.fromEntity(childrenComment);
+        return CommentDto.fromEntity(childrenComment,providerId);
     }
+
+    public CursorResponse<CommentDto> getCommentsWithCursor(CommentCursorRequest request,Long postId, String providerId) {
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        // 커서 기반 부모 댓글의 id 리스트 가져오기
+        List<Long> parentCommentsIdList;
+        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
+            // 첫 페이지 조회
+            parentCommentsIdList = commentRepository.findParentCommentsIdWithCursor(null, null, postId,request.getSize() + 1,providerId);
+        } else {
+            // 다음 페이지 조회
+            parentCommentsIdList = commentRepository.findParentCommentsIdWithCursor(
+                    request.getCursorDateTime(), request.getCursorId(),  postId,request.getSize() + 1,providerId);
+        }
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (parentCommentsIdList.size() > request.getSize()) {
+            hasNext = true;
+            parentCommentsIdList = parentCommentsIdList.subList(0, request.getSize());
+        }
+
+        // 댓글 + 답글 들고오기
+        List<CommentDto> comments = commentRepository.findComments(parentCommentsIdList, providerId);
+
+        List<CommentDto> hierarchicalComments = buildHierarchicalComments(comments);
+
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!hierarchicalComments.isEmpty() && hasNext) {
+            CommentDto lastComment = hierarchicalComments.get(hierarchicalComments.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastComment.getCreatedAt())
+                    .id(lastComment.getCommentId())
+                    .build();
+        }
+
+        return CursorResponse.<CommentDto>builder()
+                .content(hierarchicalComments)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
+
+    private List<CommentDto> buildHierarchicalComments(List<CommentDto> flatComments) {
+        Map<Long, CommentDto> commentMap = new HashMap<>();
+        List<CommentDto> parentComments = new ArrayList<>();
+
+        // 1단계: 모든 댓글을 Map에 저장하고 부모 댓글 분리
+        for (CommentDto comment : flatComments) {
+            commentMap.put(comment.getCommentId(), comment);
+            if (comment.isParent()) {
+                parentComments.add(comment);
+            }
+        }
+
+        // 2단계: 자식 댓글을 부모에 연결
+        for (CommentDto comment : flatComments) {
+            if (!comment.isParent()) {
+                CommentDto parent = commentMap.get(comment.getParentId());
+                if (parent != null) {
+                    parent.addChild(comment);
+                }
+            }
+        }
+
+        // 3단계: 부모 댓글들을 생성 시간 순으로 정렬
+        parentComments.sort((c1, c2) -> c1.getCreatedAt().compareTo(c2.getCreatedAt()));
+
+        // 4단계: 각 부모의 자식 댓글들도 정렬
+        for (CommentDto parent : parentComments) {
+            parent.getChildren().sort((c1, c2) -> c1.getCreatedAt().compareTo(c2.getCreatedAt()));
+        }
+
+        return parentComments;
+    }
+
 
 }

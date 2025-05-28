@@ -2,11 +2,14 @@ package com.example.trace.post.controller;
 
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
+import com.example.trace.post.dto.cursor.CursorResponse;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
-import com.example.trace.post.dto.PostCreateDto;
-import com.example.trace.post.dto.PostDto;
-import com.example.trace.post.dto.PostUpdateDto;
+import com.example.trace.post.dto.post.PostCreateDto;
+import com.example.trace.post.dto.post.PostDto;
+import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -111,9 +114,21 @@ public class PostController {
     public ResponseEntity<PostDto> getPost(
             @PathVariable Long id,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        String providerId = principalDetails.getUser().getProviderId();
-        PostDto post = postService.getPostById(id,providerId);
+        User user = principalDetails.getUser();
+        PostDto post = postService.getPostById(id,user);
         return ResponseEntity.ok(post);
+    }
+
+    @PostMapping("/feed")
+    @Operation(summary = "게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getAllPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getAllPostsWithCursor(
+                request, providerId != null ? providerId : null);
+
+        return ResponseEntity.ok(response);
     }
 
 
