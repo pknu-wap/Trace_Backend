@@ -1,7 +1,7 @@
 package com.example.trace.user;
 
 import com.example.trace.auth.Util.JwtUtil;
-import com.example.trace.auth.Util.RedisUtil;
+import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
 import com.example.trace.user.dto.UserDto;
@@ -13,9 +13,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import com.example.trace.user.dto.UpdateUserRequest;
+import com.example.trace.user.dto.UpdateNickNameRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,7 +42,6 @@ public class UserController {
                     mediaType = "application/json", schema = @Schema(implementation = UserDto.class)
             )
     )
-
     @PostMapping
     public ResponseEntity<UserDto> getUserInfo(HttpServletRequest request) {
         String token = jwtUtil.resolveAccessToken(request);
@@ -49,15 +50,15 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    @Operation(summary = "유저 정보 수정", description = "닉네임 및 프로필 이미지를 수정합니다.")
-    @PutMapping(consumes = "multipart/form-data")
-    public ResponseEntity<UserDto> updateUserInfo(
-            @RequestPart("user") UpdateUserRequest request,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-            HttpServletRequest httpRequest) throws IOException {
 
-        String token = jwtUtil.resolveAccessToken(httpRequest);
-        String providerId = jwtUtil.getProviderId(token);
+    @Operation(summary = "유저 프로필 이미지 수정", description = "프로필 이미지를 수정합니다.")
+    @PutMapping(value = "/profile/image",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<UserDto> updateUserProfileImage(
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) throws IOException {
+
+        User user = principalDetails.getUser();
+        String providerId = user.getProviderId();
 
         // 프로필 이미지 S3 업로드 후 URL 획득
         String imageUrl = null;
@@ -65,9 +66,18 @@ public class UserController {
             imageUrl = s3UploadService.saveFile(profileImage, FileType.PROFILE, providerId);
         }
 
-        UserDto updatedUser = userService.updateUserInfo(providerId, request, imageUrl);
-        return ResponseEntity.ok(updatedUser);
+        return ResponseEntity.ok(userService.updateUserProfileImage(providerId, imageUrl));
     }
+
+    @Operation(summary = "유저 닉네임 수정", description = "유저 닉네임을 수정합니다.")
+    @PutMapping("profile/nickname")
+    public ResponseEntity<UserDto> updateUserNickName(
+            @RequestBody UpdateNickNameRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        User user = principalDetails.getUser();
+        return ResponseEntity.ok(userService.updateUserNickName(user, request));
+    }
+
 
 
 

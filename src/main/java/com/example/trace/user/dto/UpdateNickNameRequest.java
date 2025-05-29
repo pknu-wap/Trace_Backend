@@ -9,11 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 
-public class UpdateUserRequest {
+public class UpdateNickNameRequest {
 
     @Schema(description = "새 닉네임")
     private String nickname;
-
-    @Schema(description = "새 프로필 이미지 URL")
-    private String profileImageUrl;
 }
