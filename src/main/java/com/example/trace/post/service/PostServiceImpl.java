@@ -132,7 +132,8 @@ public class PostServiceImpl implements PostService {
         PostDto postDto = PostDto.fromEntity(post);
 
         postDto.setEmotionCount(emotionCountDto);
-        postDto.setOwner(post.getUser().equals(user));
+        postDto.setOwner(post.getUser().getProviderId().equals(user.getProviderId()));
+
         postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
