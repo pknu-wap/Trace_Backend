@@ -9,6 +9,7 @@ import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
+import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.cursor.CursorResponse;
 import com.example.trace.post.dto.cursor.PostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
@@ -143,24 +144,16 @@ public class PostServiceImpl implements PostService {
         // 커서 요청 처리
         int size = request.getSize() != null ? request.getSize() : 10;
 
-        String postType = null;
-        if (request.getPostType() != null && !request.getPostType().isEmpty()) {
-            try {
-                postType = request.getPostType();
-            } catch (IllegalArgumentException e) {
-                throw new PostException(PostErrorCode.INVALID_POST_TYPE);
-            }
-        }
 
         // 게시글 조회
         List<PostFeedDto> posts;
         if (request.getCursorDateTime() == null || request.getCursorId() == null) {
             // 첫 페이지 조회
-            posts = postRepository.findPostsWithCursor(null,null, size + 1,postType);
+            posts = postRepository.findPostsWithCursor(null,null, size + 1, request.getPostType());
         } else {
             // 다음 페이지 조회
             posts = postRepository.findPostsWithCursor(
-                    request.getCursorDateTime(), request.getCursorId(), size + 1, postType );
+                    request.getCursorDateTime(), request.getCursorId(), size + 1, request.getPostType() );
         }
 
 
@@ -182,6 +175,62 @@ public class PostServiceImpl implements PostService {
         }
 
         // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId) {
+        int size = request.getSize() != null ? request.getSize() : 10;
+
+
+        // 검색어가 있는 경우 검색 메서드 사용, 없으면 기존 메서드 사용
+        List<PostFeedDto> posts;
+
+        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
+            String keyword = request.getKeyword().trim();
+
+            // 검색어 길이 검증
+            validateKeyword(keyword);
+
+            // 검색 기능 사용
+            posts = postRepository.findPostsWithCursorAndSearch(
+                    request.getCursorDateTime(),
+                    request.getCursorId(),
+                    size + 1,
+                    request.getPostType(),
+                    keyword,
+                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL
+            );
+        } else {
+            // 기존 일반 조회 기능 사용
+            posts = postRepository.findPostsWithCursor(
+                    request.getCursorDateTime(),
+                    request.getCursorId(),
+                    size + 1,
+                    request.getPostType()
+            );
+        }
+
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
         return CursorResponse.<PostFeedDto>builder()
                 .content(posts)
                 .hasNext(hasNext)
@@ -215,6 +264,23 @@ public class PostServiceImpl implements PostService {
             throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
         }
         postRepository.delete(post);
+    }
+
+
+    private void validateKeyword(String keyword) {
+        if (keyword.length() < 2) {
+            throw new PostException(PostErrorCode.INVALID_KEYWORD_LENGTH);
+        }
+
+        if (keyword.length() > 50) {
+            throw new PostException(PostErrorCode.KEYWORD_TOO_LONG);
+        }
+
+        // 추가적인 검증 로직
+        // 특수문자만으로 구성된 검색어 제한
+        if (keyword.matches("^[^a-zA-Z0-9가-힣\\s]+$")) {
+            throw new PostException(PostErrorCode.KEYWORD_TOO_LONG);
+        }
     }
 
 

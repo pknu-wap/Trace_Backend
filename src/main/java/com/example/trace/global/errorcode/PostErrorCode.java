@@ -17,6 +17,9 @@ public enum PostErrorCode implements ErrorCode{
     TITLE_EMPTY(HttpStatus.BAD_REQUEST, "제목이 비어있습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
     COMMENT_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다."),
+    INVALID_KEYWORD_LENGTH(HttpStatus.BAD_REQUEST,"검색어는 두 글자 이상이어야 합니다."),
+    KEYWORD_TOO_LONG(HttpStatus.BAD_REQUEST,"검색어는 50글자 이내여야 합니다."),
+    INVALID_KEYWORD(HttpStatus.BAD_REQUEST,"검색어는 특수문자로만 이루어지면 안됩니다.")
     ;
     private final HttpStatus httpStatus;
     private final String message;
