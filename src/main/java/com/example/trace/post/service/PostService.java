@@ -22,4 +22,6 @@ public interface PostService {
     CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String requesterId);
     void deletePost(Long id, String providerId);
 
+    CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId);
+
 } 
