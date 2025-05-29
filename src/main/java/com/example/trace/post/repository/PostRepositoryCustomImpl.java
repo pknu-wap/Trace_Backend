@@ -160,7 +160,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
         return queryFactory
                 .select(Projections.constructor(PostFeedDto.class,
                         post.id.as("postId"),
-                        post.postType.stringValue(),
+                        post.postType,
                         post.title,
                         post.content,
                         post.user.providerId,
