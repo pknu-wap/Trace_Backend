@@ -136,7 +136,7 @@ public class PostController {
     @Operation(summary = "게시글 수정", description = "게시글을 수정합니다.")
     public ResponseEntity<PostDto> updatePost(
             @PathVariable Long id,
-            @Valid @RequestBody PostUpdateDto postUpdateDto,
+            @RequestBody PostUpdateDto postUpdateDto,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         String providerId = principalDetails.getUser().getProviderId();
         PostDto updatedPost = postService.updatePost(id, postUpdateDto, providerId);
@@ -159,5 +159,17 @@ public class PostController {
         String providerId = user.getProviderId();
         postService.deletePost(id, providerId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/search")
+    @Operation(summary = "게시글 검색 (커서 기반 페이징)", description = "키워드로 게시글을 검색하고 커서 기반 페이징으로 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> searchPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.searchPostsWithCursor(request, providerId);
+
+        return ResponseEntity.ok(response);
     }
 } 
