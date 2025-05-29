@@ -140,7 +140,7 @@ public class DailyMissionService {
     public PostDto verifySubmissionAndCreatePost(String providerId, SubmitDailyMissionDto submitDto){
         VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, providerId);
         PostCreateDto postCreateDto = PostCreateDto.builder()
-                .postType(PostType.GOOD_DEED)
+                .postType(PostType.MISSION)
                 .title(submitDto.getTitle())
                 .content(submitDto.getContent())
                 .imageFiles(submitDto.getImageFiles())
