@@ -119,6 +119,7 @@ public class DailyMissionService {
         }
 
         currentMission.changeMission(newMission);
+        dailyMissionRepository.save(currentMission);
         return DailyMissionResponse.fromEntity(currentMission);
     }
     
