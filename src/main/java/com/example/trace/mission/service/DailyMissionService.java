@@ -43,7 +43,7 @@ public class DailyMissionService {
     private static final int MAX_CHANGES_PER_DAY = 10;
 
 
-    @Scheduled(cron = "0 10 23 * * *")
+    @Scheduled(cron = "0 17 23 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
@@ -119,6 +119,7 @@ public class DailyMissionService {
         }
 
         currentMission.changeMission(newMission);
+        dailyMissionRepository.save(currentMission);
         return DailyMissionResponse.fromEntity(currentMission);
     }
     
@@ -139,7 +140,7 @@ public class DailyMissionService {
     public PostDto verifySubmissionAndCreatePost(String providerId, SubmitDailyMissionDto submitDto){
         VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, providerId);
         PostCreateDto postCreateDto = PostCreateDto.builder()
-                .postType(PostType.GOOD_DEED)
+                .postType(PostType.MISSION)
                 .title(submitDto.getTitle())
                 .content(submitDto.getContent())
                 .imageFiles(submitDto.getImageFiles())

@@ -3,7 +3,12 @@ spring:
   application:
     name: Trace
   profiles:
-    active: local
+    active: dev
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Seoul
   # 한국 시간대 설정 추가
   jackson:
     time-zone: Asia/Seoul
@@ -80,7 +85,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://awseb-e-n4aeqm25qy-stack-awsebrdsdatabase-sdzqapxzvgnq.c7oqi6uuacld.ap-northeast-2.rds.amazonaws.com:3306/ebdb
+    url: jdbc:mysql://awseb-e-n4aeqm25qy-stack-awsebrdsdatabase-sdzqapxzvgnq.c7oqi6uuacld.ap-northeast-2.rds.amazonaws.com:3306/ebdb?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
@@ -90,10 +95,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
-      # 한국 시간대 설정 추가
-      jdbc:
-        time_zone: Asia/Seoul
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -145,9 +147,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-      # 한국 시간대 설정 추가
-      jdbc:
-        time_zone: Asia/Seoul
     show-sql: true
     properties:
       hibernate:
