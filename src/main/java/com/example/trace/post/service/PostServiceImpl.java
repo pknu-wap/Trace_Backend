@@ -8,7 +8,6 @@ import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
-import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.cursor.CursorResponse;
 import com.example.trace.post.dto.cursor.PostCursorRequest;
@@ -138,7 +137,6 @@ public class PostServiceImpl implements PostService {
 
         postDto.setEmotionCount(emotionCountDto);
         postDto.setOwner(post.getUser().getProviderId().equals(user.getProviderId()));
-
         postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
@@ -155,11 +153,11 @@ public class PostServiceImpl implements PostService {
         List<PostFeedDto> posts;
         if (request.getCursorDateTime() == null || request.getCursorId() == null) {
             // 첫 페이지 조회
-            posts = postRepository.findPostsWithCursor(null,null, size + 1, request.getPostType());
+            posts = postRepository.findPostsWithCursor(null,null, size + 1, request.getPostType(),providerId);
         } else {
             // 다음 페이지 조회
             posts = postRepository.findPostsWithCursor(
-                    request.getCursorDateTime(), request.getCursorId(), size + 1, request.getPostType() );
+                    request.getCursorDateTime(), request.getCursorId(), size + 1, request.getPostType(),providerId);
         }
 
 
@@ -218,7 +216,8 @@ public class PostServiceImpl implements PostService {
                     request.getCursorDateTime(),
                     request.getCursorId(),
                     size + 1,
-                    request.getPostType()
+                    request.getPostType(),
+                    providerId
             );
         }
 

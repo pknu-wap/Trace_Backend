@@ -61,6 +61,14 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                     )
             );
 
+    private BooleanExpression isOwnerExpr(String providerId){
+        BooleanExpression isOwnerExpr = Expressions.cases()
+                .when(post.user.providerId.eq(providerId))
+                .then(true)
+                .otherwise(false);
+        return isOwnerExpr;
+    }
+
     private BooleanExpression postCursorCondition(LocalDateTime cursorDateTime, Long cursorId) {
         if (cursorDateTime == null || cursorId == null) {
             return Expressions.TRUE; // 첫 페이지
@@ -104,7 +112,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType) {
+            PostType postType,
+            String providerId) {
 
         // Q클래스 정의
         QPost post = QPost.post;
@@ -125,7 +134,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                         post.commentList.size().longValue(),
                         post.createdAt,
                         post.updatedAt,
-                        isVerifiedExpr
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId)
                 ))
                 .from(post)
                 .leftJoin(post.user)

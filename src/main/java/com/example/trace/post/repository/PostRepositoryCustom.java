@@ -13,7 +13,8 @@ public interface PostRepositoryCustom {
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType
+            PostType postType,
+            String providerId
     );
 
     List<CommentDto> findComments(
