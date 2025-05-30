@@ -10,7 +10,6 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,6 +40,14 @@ public class User {
             return Arrays.asList(this.role.split(","));
         }
         return new ArrayList<>();
+    }
+
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
+    public void updateProfileImageUrl(String newProfileImageUrl) {
+        this.profileImageUrl = newProfileImageUrl;
     }
 
 }

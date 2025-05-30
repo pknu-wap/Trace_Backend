@@ -5,10 +5,14 @@ import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.Util.RedisUtil;
 import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.global.errorcode.TokenErrorCode;
+import com.example.trace.global.errorcode.UserErrorCode;
 import com.example.trace.global.exception.TokenException;
+import com.example.trace.global.exception.UserException;
+import com.example.trace.user.dto.UpdateNickNameRequest;
 import com.example.trace.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +31,33 @@ public class UserService {
     public UserDto getUserInfo(String providerId) {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return new UserDto().fromEntity(user);
+        return UserDto.fromEntity(user);
+    }
+
+    @Transactional
+    public UserDto updateUserNickName(User user,UpdateNickNameRequest request){
+        String newNickname = request.getNickname();
+        if (newNickname != null) {
+            // 닉네임이 현재 닉네임과 다를 때만 중복 체크
+            if (!newNickname.equals(user.getNickname()) && userRepository.existsByNickname(newNickname)) {
+                throw new UserException(UserErrorCode.ALREADY_IN_USE_NICKNAME);
+            }
+            user.updateNickname(newNickname);
+        }
+        userRepository.save(user);
+        return UserDto.fromEntity(user);
+    }
+
+    @Transactional
+    public UserDto updateUserProfileImage(String providerId, String imageUrl) {
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (imageUrl != null) {
+            user.updateProfileImageUrl(imageUrl);
+        }
+        userRepository.save(user);
+        return UserDto.fromEntity(user);
     }
 
     /**
