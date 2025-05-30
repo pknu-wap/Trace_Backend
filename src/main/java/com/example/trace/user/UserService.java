@@ -53,9 +53,7 @@ public class UserService {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (imageUrl != null) {
-            user.updateProfileImageUrl(imageUrl);
-        }
+        user.updateProfileImageUrl(imageUrl);
         userRepository.save(user);
         return UserDto.fromEntity(user);
     }
