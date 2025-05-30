@@ -91,7 +91,10 @@ public class PostServiceImpl implements PostService {
                 .verification(verification)
                 .build();
 
-        verification.connectToPost(post);
+        if(verification !=null){
+            verification.connectToPost(post);
+        }
+
 
         Post savedPost = postRepository.save(post);
 
