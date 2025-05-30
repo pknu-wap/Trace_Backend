@@ -75,7 +75,7 @@ public class PostServiceImpl implements PostService {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
-        user.updateVerificationScore(verificationDto);
+        user.updateVerification(verificationDto);
 
         if (postCreateDto.getContent() == null || postCreateDto.getContent().isEmpty()) {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
@@ -225,7 +225,8 @@ public class PostServiceImpl implements PostService {
                     size + 1,
                     request.getPostType(),
                     keyword,
-                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL
+                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL,
+                    providerId
             );
         } else {
             // 기존 일반 조회 기능 사용

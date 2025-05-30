@@ -20,6 +20,8 @@ public class UserDto {
     String email;
     @Schema(description = "선행 점수")
     Long verificationScore;
+    @Schema(description = "선행 인증 개수")
+    Long verificationCount;
 
     public static UserDto fromEntity(User user) {
         return UserDto.builder()
@@ -27,6 +29,7 @@ public class UserDto {
                 .profileImageUrl(user.getProfileImageUrl())
                 .email(user.getEmail())
                 .verificationScore(user.getVerificationScore())
+                .verificationCount(user.getVerificationCount())
                 .build();
     }
 }
