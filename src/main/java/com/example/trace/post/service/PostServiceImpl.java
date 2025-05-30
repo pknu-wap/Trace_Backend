@@ -136,28 +136,28 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto getPostById (Long postId, User user){
+    public PostDto getPostById (Long postId, User requestUser){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-
+        User authorUser = post.getUser();
         LocalDate today = LocalDate.now();
-        DailyMission dailyMission = dailyMissionRepository.findByUserAndDate(user,today)
+        DailyMission authorDailyMission = dailyMissionRepository.findByUserAndDate(authorUser,today)
                 .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         post.incrementViewCount();
 
         EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(postId);
 
-        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,user);
+        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,requestUser);
 
         PostDto postDto = PostDto.fromEntity(post);
 
         if(postDto.getPostType() == PostType.MISSION){
-            postDto.setMissionContent(dailyMission.getMission().getDescription());
+            postDto.setMissionContent(authorDailyMission.getMission().getDescription());
         }
 
         postDto.setEmotionCount(emotionCountDto);
-        postDto.setOwner(post.getUser().getProviderId().equals(user.getProviderId()));
+        postDto.setOwner(post.getUser().getProviderId().equals(requestUser.getProviderId()));
         postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
