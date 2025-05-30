@@ -91,6 +91,11 @@ public class PostServiceImpl implements PostService {
                 .verification(verification)
                 .build();
 
+        if(verification !=null){
+            verification.connectToPost(post);
+        }
+
+
         Post savedPost = postRepository.save(post);
 
         List<MultipartFile> imageFiles = postCreateDto.getImageFiles();

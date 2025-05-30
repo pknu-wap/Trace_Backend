@@ -34,4 +34,9 @@ public class Verification {
 
     private String successReason;
 
+    public void connectToPost(Post post){
+        this.post = post;
+    }
+
+
 }
