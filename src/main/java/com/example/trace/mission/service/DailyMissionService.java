@@ -10,6 +10,8 @@ import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.MissionRepository;
+import com.example.trace.mission.mission.CompletedMission;
+import com.example.trace.mission.repository.CompletedMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
@@ -39,6 +41,7 @@ public class DailyMissionService {
     private final UserRepository userRepository;
     private final PostVerificationService postVerificationService;
     private final PostService postService;
+    private final CompletedMissionRepository completedMissionRepository;
     
     private static final int MAX_CHANGES_PER_DAY = 10;
 
@@ -145,7 +148,26 @@ public class DailyMissionService {
                 .content(submitDto.getContent())
                 .imageFiles(submitDto.getImageFiles())
                 .build();
-        return postService.createPost(postCreateDto,providerId,verificationDto);
+        
+        PostDto postDto = postService.createPost(postCreateDto,providerId,verificationDto);
+        saveCompletedMission(providerId, postDto.getId());
+        
+        return postDto;
+    }
+
+    private void saveCompletedMission(String providerId, Long postId) {
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new MissionException(MissionErrorCode.USER_NOT_FOUND));
+        LocalDate today = LocalDate.now();
+        DailyMission dailyMission = dailyMissionRepository.findByUserAndDate(user, today)
+                .orElseThrow(() -> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+
+        CompletedMission completedMission = CompletedMission.builder()
+                .user(user)
+                .mission(dailyMission.getMission())
+                .build();
+        completedMission.updatePostId(postId);
+        completedMissionRepository.save(completedMission);
     }
 
 }
