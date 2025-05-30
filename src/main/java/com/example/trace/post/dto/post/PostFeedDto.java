@@ -59,4 +59,7 @@ public class PostFeedDto {
     @Schema(description = "본인 여부", example = "false")
     @JsonProperty(value = "isOwner")
     private boolean isOwner;
+
+    @Schema(description = "감정표현 개수", example ="12")
+    private Long emotionCountSum;
 }
