@@ -1,5 +1,6 @@
 package com.example.trace.user;
 
+import com.example.trace.gpt.dto.VerificationDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,9 @@ public class User {
 
     private String profileImageUrl;
 
+    @Builder.Default
+    private Long verificationScore = 0L;
+
     //spring security용으로 일단 두기.
     private String password;
     private String username;
@@ -50,4 +54,8 @@ public class User {
         this.profileImageUrl = newProfileImageUrl;
     }
 
+    public void updateVerificationScore(VerificationDto verificationDto){
+        if(verificationDto.isImageResult()) this.verificationScore += 10;
+        if(verificationDto.isTextResult()) this.verificationScore += 5;
+    }
 }
