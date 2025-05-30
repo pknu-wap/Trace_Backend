@@ -91,6 +91,14 @@ public class PostDto {
                                 (post.getVerification().isImageVerified() ||
                                         post.getVerification().isTextVerified())
                 )
+                .emotionCount(
+                        EmotionCountDto.builder()
+                                .heartwarmingCount(0L)
+                                .gratefulCount(0L)
+                                .impressiveCount(0L)
+                                .likeableCount(0L)
+                                .touchingCount(0L)
+                                .build())
                 .isOwner(true)
                 .profileImageUrl(post.getUser().getProfileImageUrl())
                 .createdAt(post.getCreatedAt())
