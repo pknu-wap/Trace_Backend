@@ -7,9 +7,11 @@ import com.example.trace.post.domain.QPostImage;
 import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.comment.CommentDto;
 import com.example.trace.post.dto.post.PostFeedDto;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.example.trace.emotion.QEmotion.emotion;
 import static com.example.trace.post.domain.QComment.comment;
 import static com.example.trace.post.domain.QPost.post;
 import static com.example.trace.post.domain.QPostImage.postImage;
@@ -60,6 +63,16 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                             post.verification.isTextVerified
                     )
             );
+
+    private BooleanExpression isOwnerExpr(String providerId){
+        BooleanExpression isOwnerExpr = Expressions.cases()
+                .when(post.user.providerId.eq(providerId))
+                .then(true)
+                .otherwise(false);
+        return isOwnerExpr;
+    }
+
+
 
     private BooleanExpression postCursorCondition(LocalDateTime cursorDateTime, Long cursorId) {
         if (cursorDateTime == null || cursorId == null) {
@@ -104,11 +117,17 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType) {
+            PostType postType,
+            String providerId) {
 
         // Q클래스 정의
         QPost post = QPost.post;
         QPostImage postImage = new QPostImage("postImage");
+
+        Expression<Long> totalEmotionCount = JPAExpressions
+                .select(emotion.count())
+                .from(emotion)
+                .where(emotion.post.eq(post));
 
 
         return queryFactory
@@ -125,7 +144,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                         post.commentList.size().longValue(),
                         post.createdAt,
                         post.updatedAt,
-                        isVerifiedExpr
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
                 ))
                 .from(post)
                 .leftJoin(post.user)
@@ -249,9 +270,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
 
         return allComments;
     }
-
-
-
 
 
 }

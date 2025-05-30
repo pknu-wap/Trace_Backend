@@ -115,8 +115,9 @@ public class PostController {
             @PathVariable Long id,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         User user = principalDetails.getUser();
-        PostDto post = postService.getPostById(id,user);
-        return ResponseEntity.ok(post);
+        PostDto postDto = postService.getPostById(id,user);
+
+        return ResponseEntity.ok(postDto);
     }
 
     @PostMapping("/feed")

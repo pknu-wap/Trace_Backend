@@ -1,6 +1,7 @@
 package com.example.trace.post.dto.post;
 
 import com.example.trace.post.domain.PostType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,5 +53,13 @@ public class PostFeedDto {
     private LocalDateTime updatedAt;
 
     @Schema(description = "인증 여부", example = "false")
+    @JsonProperty(value = "isVerified")
     private boolean isVerified;
+
+    @Schema(description = "본인 여부", example = "false")
+    @JsonProperty(value = "isOwner")
+    private boolean isOwner;
+
+    @Schema(description = "감정표현 개수", example ="12")
+    private Long emotionCountSum;
 }

@@ -66,7 +66,7 @@ public class EmotionService {
                 .gratefulCount(gratefulCount)
                 .impressiveCount(impressiveCount)
                 .touchingCount(touchingCount)
-                .likableCount(likeableCount)
+                .likeableCount(likeableCount)
                 .build();
     }
 

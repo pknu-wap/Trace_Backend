@@ -19,7 +19,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType);
+            PostType postType,
+            String providerId);
 
 
 }
