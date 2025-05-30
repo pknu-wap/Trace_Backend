@@ -75,7 +75,10 @@ public class PostServiceImpl implements PostService {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
-        user.updateVerification(verificationDto);
+        if(verificationDto != null){
+            user.updateVerification(verificationDto);
+        }
+
 
         if (postCreateDto.getContent() == null || postCreateDto.getContent().isEmpty()) {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
