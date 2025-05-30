@@ -6,6 +6,10 @@ import com.example.trace.global.errorcode.AuthErrorCode;
 import com.example.trace.global.errorcode.SignUpErrorCode;
 import com.example.trace.global.exception.AuthException;
 import com.example.trace.global.exception.SignUpException;
+import com.example.trace.mission.mission.DailyMission;
+import com.example.trace.mission.mission.Mission;
+import com.example.trace.mission.repository.DailyMissionRepository;
+import com.example.trace.mission.repository.MissionRepository;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.*;
 
@@ -28,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +44,8 @@ public class KakaoOAuthService {
     private final KakaoOIDCProvider oidcProvider;
     private final KakaoOAuthClient kakaoOAuthClient;
     private final UserRepository userRepository;
+    private final MissionRepository missionRepository;
+    private final DailyMissionRepository dailyMissionRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtUtil jwtUtil;
     private final S3UploadService s3UploadService;
@@ -123,6 +130,18 @@ public class KakaoOAuthService {
                     .build();
 
             userRepository.save(newUser);
+
+            Mission randomMission = missionRepository.findRandomMission();
+            LocalDate today = LocalDate.now();
+
+            DailyMission signUpDailyMission = DailyMission.builder()
+                    .mission(randomMission)
+                    .user(newUser)
+                    .date(today)
+                    .changeCount(0)
+                    .build();
+
+            dailyMissionRepository.save(signUpDailyMission);
 
             // 4. Generate JWT tokens for your app
             String accessToken = generateAccessToken(newUser);

@@ -1,6 +1,5 @@
 package com.example.trace.user.dto;
 
-
 import com.example.trace.user.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

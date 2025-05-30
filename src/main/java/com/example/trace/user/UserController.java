@@ -42,7 +42,7 @@ public class UserController {
                     mediaType = "application/json", schema = @Schema(implementation = UserDto.class)
             )
     )
-    @PostMapping
+    @GetMapping
     public ResponseEntity<UserDto> getUserInfo(HttpServletRequest request) {
         String token = jwtUtil.resolveAccessToken(request);
         String providerId = jwtUtil.getProviderId(token);

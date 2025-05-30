@@ -3,6 +3,7 @@ package com.example.trace.global.handler;
 import com.example.trace.global.errorcode.*;
 import com.example.trace.global.exception.*;
 import com.example.trace.global.response.ErrorResponse;
+import com.example.trace.global.response.GptErrorResponse;
 import com.example.trace.global.response.TokenErrorResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +23,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         AuthErrorCode authErrorCode = e.getAuthErrorCode();
         return handleExceptionInternal(authErrorCode);
     }
+    @ExceptionHandler(MissionException.class)
+    public ResponseEntity<Object> handleMissionException(MissionException e) {
+        MissionErrorCode missionErrorCode = e.getMissionErrorCode();
+        return handleExceptionInternal(missionErrorCode);
+    }
+
 
     @ExceptionHandler(SignUpException.class)
     public ResponseEntity<Object> handleSignUpException(SignUpException e) {
@@ -41,6 +48,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(postErrorCode);
     }
 
+    @ExceptionHandler(GptException.class)
+    public ResponseEntity<Object> handleGptException(GptException e) {
+        GptErrorCode gptErrorCode = e.getGptErrorCode();
+        String failureReason = e.getFailureReason();
+        return handleExceptionInternal(gptErrorCode,failureReason);
+    }
+
     private ResponseEntity<Object> handleExceptionInternal(TokenErrorCode tokenErrorCode) {
         return ResponseEntity.status(tokenErrorCode.getHttpStatus())
                 .body(makeTokenErrorResponse(tokenErrorCode));
@@ -49,6 +63,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> handleExceptionInternal(AuthErrorCode authErrorCode) {
         return ResponseEntity.status(authErrorCode.getHttpStatus())
                 .body(makeErrorResponse(authErrorCode));
+    }
+
+    private ResponseEntity<Object> handleExceptionInternal(MissionErrorCode missionErrorCode) {
+        return ResponseEntity.status(missionErrorCode.getHttpStatus())
+                .body(makeErrorResponse(missionErrorCode));
     }
 
     private ResponseEntity<Object> handleExceptionInternal(SignUpErrorCode signUpErrorCode) {
@@ -66,12 +85,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(makeErrorResponse(postErrorCode));
     }
 
+    private ResponseEntity<Object> handleExceptionInternal(GptErrorCode gptErrorCode, String failureReason) {
+        return ResponseEntity.status(gptErrorCode.getHttpStatus())
+                .body(makeGptErrorResponse(gptErrorCode,failureReason));
+    }
+
     private TokenErrorResponse makeTokenErrorResponse(TokenErrorCode tokenErrorCode) {
         return TokenErrorResponse.builder()
                 .code(tokenErrorCode.name())
                 .message(tokenErrorCode.getMessage())
                 .isExpired(tokenErrorCode.isExpired())
                 .isValid(tokenErrorCode.isValid())
+                .build();
+    }
+
+    private GptErrorResponse makeGptErrorResponse(GptErrorCode gptErrorCode, String failureReason) {
+        return GptErrorResponse.builder()
+                .code(gptErrorCode.name())
+                .message(gptErrorCode.getMessage())
+                .failureReason(failureReason)
                 .build();
     }
     private ErrorResponse makeErrorResponse(ErrorCode errorCode) {

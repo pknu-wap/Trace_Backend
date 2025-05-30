@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "게시물 선행 인증 결과")
-public class PostVerificationResult {
+public class VerificationDto {
     @Schema(description = "텍스트 인증 결과", example = "true")
     private boolean textResult;
     @Schema(description = "이미지 인증 결과", example = "true")
@@ -22,8 +22,8 @@ public class PostVerificationResult {
     private String failureReason;
 
 
-    public static PostVerificationResult textOnlyFailure(String reason) {
-        return PostVerificationResult.builder()
+    public static VerificationDto textOnlyFailure(String reason) {
+        return VerificationDto.builder()
                 .textResult(false)
                 .imageResult(false)
                 .failureReason(reason)
@@ -31,8 +31,8 @@ public class PostVerificationResult {
     }
 
 
-    public static PostVerificationResult bothFailure(String reason) {
-        return PostVerificationResult.builder()
+    public static VerificationDto bothFailure(String reason) {
+        return VerificationDto.builder()
                 .textResult(false)
                 .imageResult(false)
                 .failureReason(reason)

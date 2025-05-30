@@ -1,8 +1,10 @@
-package com.example.trace.post.dto;
+package com.example.trace.post.dto.post;
 
+import com.example.trace.emotion.EmotionType;
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.post.domain.Post;
 import com.example.trace.post.domain.PostImage;
+import com.example.trace.post.domain.PostType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -25,7 +27,7 @@ public class PostDto {
     private Long id;
 
     @Schema(description = "게시글 타입", example = "FREE, GOOD_DEED, MISSION")
-    private String postType;
+    private PostType postType;
 
     @Schema(description = "조회수", example = "100")
     private Long viewCount;
@@ -59,6 +61,9 @@ public class PostDto {
     @JsonProperty("isVerified")
     private boolean isVerified;
 
+    @Schema(description = "본인이 추가한 감정표현", example = "HEARTWARMING")
+    private EmotionType yourEmotionType;
+
     @Schema(description = "게시글 작성일", example = "2023-10-01T12:00:00")
     private LocalDateTime createdAt;
 
@@ -74,7 +79,7 @@ public class PostDto {
                 
         return PostDto.builder()
                 .id(post.getId())
-                .postType(post.getPostType().name())
+                .postType(post.getPostType())
                 .viewCount(post.getViewCount())
                 .title(post.getTitle())
                 .content(post.getContent())
@@ -83,8 +88,8 @@ public class PostDto {
                 .imageUrls(imageUrls)
                 .isVerified(
                         post.getVerification() != null &&
-                        post.getVerification().isImageVerified() &&
-                        post.getVerification().isTextVerified()
+                                (post.getVerification().isImageVerified() ||
+                                        post.getVerification().isTextVerified())
                 )
                 .isOwner(true)
                 .profileImageUrl(post.getUser().getProfileImageUrl())

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.TimeUnit;
 
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,9 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
 
+    /**
+     * providerId로 사용자 정보를 조회합니다.
+     */
     public UserDto getUserInfo(String providerId) {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -54,6 +58,13 @@ public class UserService {
         }
         userRepository.save(user);
         return UserDto.fromEntity(user);
+    }
+
+    /**
+     * 모든 사용자 목록을 조회합니다.
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     public void logout(String accessToken) {
