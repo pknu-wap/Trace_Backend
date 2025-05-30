@@ -116,6 +116,7 @@ public class PostController {
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         User user = principalDetails.getUser();
         PostDto postDto = postService.getPostById(id,user);
+
         return ResponseEntity.ok(postDto);
     }
 

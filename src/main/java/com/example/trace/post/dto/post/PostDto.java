@@ -69,6 +69,9 @@ public class PostDto {
 
     @Schema(description = "게시글 수정일", example = "2023-10-01T12:00:00")
     private LocalDateTime updatedAt;
+
+    @Schema(description = "미션 게시글일 때 보낼 content", example = "부모님 심부름에 다녀왔습니다.")
+    private String missionContent;
     
     public static PostDto fromEntity(Post post) {
         List<String> imageUrls = post.getImages() != null ? 

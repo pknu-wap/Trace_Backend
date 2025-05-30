@@ -17,7 +17,4 @@ public interface DailyMissionRepository extends JpaRepository<DailyMission, Long
     // 특정 사용자와 날짜의 미션 여부 확인
     Optional<DailyMission> findByUserAndDate(User user, LocalDate date);
 
-    @Modifying
-    @Query("UPDATE DailyMission d SET d.changeCount = 0 WHERE d.date = :date")
-    void resetChangeCount(@Param("date") LocalDate date);
 }
