@@ -31,6 +31,9 @@ public class PostCreateDto {
     @Schema(description = "게시글 내용", example = "게시글 내용")
     private String content;
 
+    @Schema(description = "할당된 미션 내용", example ="종업원에게 인사하기", hidden = true)
+    private String missionContent;
+
     @JsonIgnore
     private MultipartFile imageFile;
 

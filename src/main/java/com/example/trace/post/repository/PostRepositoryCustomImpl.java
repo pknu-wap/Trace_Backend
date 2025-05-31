@@ -11,7 +11,6 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -52,6 +51,10 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                             .orderBy(postImage.id.asc())
                             .limit(1)
             );
+    Expression<Long> totalEmotionCount = JPAExpressions
+            .select(emotion.count())
+            .from(emotion)
+            .where(emotion.post.eq(post));
 
     BooleanExpression isVerifiedExpr = Expressions.cases()
             .when(post.verification.isNull())
@@ -168,7 +171,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
             int size,
             PostType postType,
             String keyword,
-            SearchType searchType) {
+            SearchType searchType,
+            String providerId) {
 
         QPost post = QPost.post;
         QPostImage postImage = new QPostImage("postImage");
@@ -187,7 +191,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                         post.commentList.size().longValue(),
                         post.createdAt,
                         post.updatedAt,
-                        isVerifiedExpr
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
                 ))
                 .from(post)
                 .leftJoin(post.user)

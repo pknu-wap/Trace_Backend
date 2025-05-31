@@ -138,12 +138,24 @@ public class DailyMissionService {
     }
 
     public PostDto verifySubmissionAndCreatePost(String providerId, SubmitDailyMissionDto submitDto){
-        VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, providerId);
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(()->new MissionException(MissionErrorCode.USER_NOT_FOUND));
+        LocalDate today = LocalDate.now();
+        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,today)
+                .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+
+        VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, assignedDailyMission);
+        if(!verificationDto.isImageResult() && !verificationDto.isTextResult()){
+            throw new MissionException(MissionErrorCode.VERIFICATION_FAIL);
+        }
+        assignedDailyMission.updateVerification(true);
+
         PostCreateDto postCreateDto = PostCreateDto.builder()
                 .postType(PostType.MISSION)
                 .title(submitDto.getTitle())
                 .content(submitDto.getContent())
                 .imageFiles(submitDto.getImageFiles())
+                .missionContent(assignedDailyMission.getMission().getDescription())
                 .build();
         return postService.createPost(postCreateDto,providerId,verificationDto);
     }

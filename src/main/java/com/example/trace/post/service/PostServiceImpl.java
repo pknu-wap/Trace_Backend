@@ -3,14 +3,11 @@ package com.example.trace.post.service;
 import com.example.trace.emotion.EmotionService;
 import com.example.trace.emotion.EmotionType;
 import com.example.trace.emotion.dto.EmotionCountDto;
-import com.example.trace.global.errorcode.MissionErrorCode;
 import com.example.trace.global.errorcode.PostErrorCode;
-import com.example.trace.global.exception.MissionException;
 import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
-import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
@@ -33,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -75,6 +71,11 @@ public class PostServiceImpl implements PostService {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
+        if(verificationDto != null){
+            user.updateVerification(verificationDto);
+        }
+
+
         if (postCreateDto.getContent() == null || postCreateDto.getContent().isEmpty()) {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
         }
@@ -88,6 +89,7 @@ public class PostServiceImpl implements PostService {
             verification = postVerificationService.makeVerification(verificationDto);
         }
 
+
         Post post = Post.builder()
                 .postType(postCreateDto.getPostType())
                 .viewCount(0L)
@@ -95,6 +97,7 @@ public class PostServiceImpl implements PostService {
                 .content(postCreateDto.getContent())
                 .user(user)
                 .verification(verification)
+                .missionContent(postCreateDto.getPostType() == PostType.MISSION ? postCreateDto.getMissionContent() : null)
                 .build();
 
         if(verification !=null){
@@ -130,28 +133,20 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto getPostById (Long postId, User user){
+    public PostDto getPostById (Long postId, User requestUser){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-
-        LocalDate today = LocalDate.now();
-        DailyMission dailyMission = dailyMissionRepository.findByUserAndDate(user,today)
-                .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         post.incrementViewCount();
 
         EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(postId);
 
-        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,user);
+        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,requestUser);
 
         PostDto postDto = PostDto.fromEntity(post);
 
-        if(postDto.getPostType() == PostType.MISSION){
-            postDto.setMissionContent(dailyMission.getMission().getDescription());
-        }
-
         postDto.setEmotionCount(emotionCountDto);
-        postDto.setOwner(post.getUser().getProviderId().equals(user.getProviderId()));
+        postDto.setOwner(post.getUser().getProviderId().equals(requestUser.getProviderId()));
         postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
@@ -222,7 +217,8 @@ public class PostServiceImpl implements PostService {
                     size + 1,
                     request.getPostType(),
                     keyword,
-                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL
+                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL,
+                    providerId
             );
         } else {
             // 기존 일반 조회 기능 사용

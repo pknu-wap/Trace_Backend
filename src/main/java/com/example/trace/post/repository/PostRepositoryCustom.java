@@ -34,7 +34,8 @@ public interface PostRepositoryCustom {
             int size,
             PostType postType,
             String keyword,
-            SearchType searchType
+            SearchType searchType,
+            String providerId
     );
 
 }
