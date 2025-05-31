@@ -106,6 +106,7 @@ public class PostDto {
                 .profileImageUrl(post.getUser().getProfileImageUrl())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
+                .missionContent(post.getPostType() == PostType.MISSION ? post.getMissionContent() : null)
                 .build();
     }
     

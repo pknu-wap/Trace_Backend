@@ -67,6 +67,9 @@ public class Post {
     @JoinColumn(name = "verification_id")
     private Verification verification;
 
+    @Column(name = "mission_content")
+    private String missionContent;
+
 
     public void addImage(PostImage image) {
         this.images.add(image);

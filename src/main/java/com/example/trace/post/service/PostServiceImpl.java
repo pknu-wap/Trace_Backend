@@ -3,14 +3,11 @@ package com.example.trace.post.service;
 import com.example.trace.emotion.EmotionService;
 import com.example.trace.emotion.EmotionType;
 import com.example.trace.emotion.dto.EmotionCountDto;
-import com.example.trace.global.errorcode.MissionErrorCode;
 import com.example.trace.global.errorcode.PostErrorCode;
-import com.example.trace.global.exception.MissionException;
 import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
-import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
@@ -33,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -101,6 +97,7 @@ public class PostServiceImpl implements PostService {
                 .content(postCreateDto.getContent())
                 .user(user)
                 .verification(verification)
+                .missionContent(postCreateDto.getPostType() == PostType.MISSION ? postCreateDto.getMissionContent() : null)
                 .build();
 
         if(verification !=null){
@@ -139,10 +136,6 @@ public class PostServiceImpl implements PostService {
     public PostDto getPostById (Long postId, User requestUser){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-        User authorUser = post.getUser();
-        LocalDate today = LocalDate.now();
-        DailyMission authorDailyMission = dailyMissionRepository.findByUserAndDate(authorUser,today)
-                .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         post.incrementViewCount();
 
@@ -151,10 +144,6 @@ public class PostServiceImpl implements PostService {
         EmotionType yourEmotionType = emotionService.getYourEmotion(postId,requestUser);
 
         PostDto postDto = PostDto.fromEntity(post);
-
-        if(postDto.getPostType() == PostType.MISSION){
-            postDto.setMissionContent(authorDailyMission.getMission().getDescription());
-        }
 
         postDto.setEmotionCount(emotionCountDto);
         postDto.setOwner(post.getUser().getProviderId().equals(requestUser.getProviderId()));
