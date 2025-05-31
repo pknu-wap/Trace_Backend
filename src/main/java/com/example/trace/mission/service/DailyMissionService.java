@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,8 +52,11 @@ public class DailyMissionService {
             List<User> users = userService.getAllUsers();
 
             for (User user : users) {
-                dailyMissionRepository.findByUserAndDate(user, today)
-                        .ifPresent(existing -> dailyMissionRepository.delete(existing));
+                Optional<DailyMission> existingMission = dailyMissionRepository.findByUserAndDate(user, today);
+
+                if(existingMission.isPresent()){
+                    continue;
+                }
 
                 Mission randomMission = missionRepository.findRandomMission();
                 DailyMission dailyMission = DailyMission.builder()
@@ -60,6 +64,7 @@ public class DailyMissionService {
                                                     .mission(randomMission)
                                                     .date(today)
                                                     .changeCount(0)
+                                                    .isVerified(false)
                                                     .build();
                 dailyMissionRepository.save(dailyMission);
             }
@@ -84,6 +89,7 @@ public class DailyMissionService {
                                                 .mission(randomMission)
                                                 .date(today)
                                                 .changeCount(0)
+                                                .isVerified(false)
                                                 .build();
         return DailyMissionResponse.fromEntity(dailyMissionRepository.save(dailyMission));
     }
@@ -98,6 +104,10 @@ public class DailyMissionService {
 
         DailyMission currentMission = dailyMissionRepository.findByUserAndDate(user, today)
                 .orElseThrow(() -> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+
+        if(currentMission.isVerified()){
+            throw new MissionException(MissionErrorCode.ALREADY_VERIFIED);
+        }
 
         if (currentMission.getChangeCount() >= MAX_CHANGES_PER_DAY) {
             throw new MissionException(MissionErrorCode.MISSION_CREATION_LIMIT_EXCEEDED);

@@ -30,8 +30,10 @@ public class Verification {
 
     private boolean isImageVerified;
 
+    @Column(columnDefinition = "TEXT")
     private String failureReason;
 
+    @Column(columnDefinition = "TEXT")
     private String successReason;
 
     public void connectToPost(Post post){

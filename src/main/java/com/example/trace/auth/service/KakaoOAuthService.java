@@ -139,6 +139,7 @@ public class KakaoOAuthService {
                     .user(newUser)
                     .date(today)
                     .changeCount(0)
+                    .isVerified(false)
                     .build();
 
             dailyMissionRepository.save(signUpDailyMission);

@@ -38,7 +38,7 @@ public class DailyMission {
     @Column(nullable = false)
     private int changeCount;
 
-    @JsonProperty("isVerified")
+    @Column(name="is_verified")
     private boolean isVerified;
 
     public void changeMission(Mission newMission) {
