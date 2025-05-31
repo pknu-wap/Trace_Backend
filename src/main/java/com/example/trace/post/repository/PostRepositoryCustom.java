@@ -38,4 +38,10 @@ public interface PostRepositoryCustom {
             String providerId
     );
 
+    List<PostFeedDto> findUserPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size
+    );
 }

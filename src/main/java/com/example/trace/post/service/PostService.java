@@ -8,7 +8,7 @@ import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.user.User;
-
+import java.util.List;
 
 public interface PostService {
 
@@ -23,5 +23,7 @@ public interface PostService {
     void deletePost(Long id, String providerId);
 
     CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId);
+
+    CursorResponse<PostFeedDto> getMyPostsWithCursor(PostCursorRequest request, String providerId);
 
 } 

@@ -298,6 +298,37 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    @Override
+    public CursorResponse<PostFeedDto> getMyPostsWithCursor(PostCursorRequest request, String providerId) {
+        int size = request.getSize() != null ? request.getSize() : 10;
+        
+        List<PostFeedDto> posts = postRepository.findUserPosts(
+            providerId,
+            request.getCursorDateTime(),
+            request.getCursorId(),
+            size + 1
+        );
+        
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
 
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
 
 }
