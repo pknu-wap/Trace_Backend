@@ -148,6 +148,8 @@ public class DailyMissionService {
         if(!verificationDto.isImageResult() && !verificationDto.isTextResult()){
             throw new MissionException(MissionErrorCode.VERIFICATION_FAIL);
         }
+        assignedDailyMission.updateVerification(true);
+
         PostCreateDto postCreateDto = PostCreateDto.builder()
                 .postType(PostType.MISSION)
                 .title(submitDto.getTitle())
