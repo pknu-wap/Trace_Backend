@@ -1,6 +1,7 @@
 package com.example.trace.mission.controller;
 
 import com.example.trace.mission.dto.AssignMissionRequest;
+import com.example.trace.mission.dto.CompletedMissionRequest;
 import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.dto.DailyMissionResponse;
 import com.example.trace.mission.dto.CompletedMissionResponse;
@@ -100,12 +101,13 @@ public class DailyMissionController {
      * 사용자의 완료된 미션 목록을 조회합니다.
      * 커서 기반 페이지네이션을 사용합니다.
      */
-    @GetMapping("/completed")
+    @PostMapping("/completed")
     public ResponseEntity<List<CompletedMissionResponse>> getCompletedMissions(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @RequestParam(required = false) Long cursorId) {
+            @RequestBody(required = false) CompletedMissionRequest request) {
         try {
             String providerId = principalDetails.getUser().getProviderId();
+            Long cursorId = (request != null) ? request.getCursorId() : null;
             List<CompletedMissionResponse> completedMissions =
                     completedMissionService.getUserCompletedMissions(providerId, cursorId);
             return ResponseEntity.ok(completedMissions);
@@ -114,4 +116,5 @@ public class DailyMissionController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
 }
