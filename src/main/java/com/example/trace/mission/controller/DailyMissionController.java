@@ -1,13 +1,13 @@
 package com.example.trace.mission.controller;
 
-import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.AssignMissionRequest;
 import com.example.trace.mission.dto.SubmitDailyMissionDto;
-import com.example.trace.mission.service.DailyMissionService;
 import com.example.trace.mission.dto.DailyMissionResponse;
+import com.example.trace.mission.dto.CompletedMissionResponse;
+import com.example.trace.mission.service.DailyMissionService;
+import com.example.trace.mission.service.CompletedMissionService;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.post.dto.post.PostDto;
-import com.example.trace.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/missions")
 @RequiredArgsConstructor
@@ -34,6 +33,7 @@ import java.util.List;
 public class DailyMissionController {
 
     private final DailyMissionService missionService;
+    private final CompletedMissionService completedMissionService;
 
     /**
      * 오늘 할당된 미션을 사용자에게 반환합니다.
@@ -55,13 +55,19 @@ public class DailyMissionController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 테스트용 미션 할당 엔드포인트
+     */
     @PostMapping("/assign/test")
     public ResponseEntity<DailyMissionResponse> assignDailyMissionsToUserForTest(@RequestBody AssignMissionRequest request){
         String providerId = request.getProviderId();
         return ResponseEntity.ok(missionService.assignDailyMissionsToUserForTest(providerId));
     }
 
-    @PostMapping(value ="/submit",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    /**
+     * 미션 제출 시 선행 인증 후 게시글 등록
+     */
+    @PostMapping(value = "/submit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(summary = "미션 제출 시, 선행 인증", description = "미션 제출 내용이 선행과 관련있는지 인증합니다.")
     @ApiResponses({
             @ApiResponse(
@@ -79,15 +85,33 @@ public class DailyMissionController {
     public ResponseEntity<PostDto> submitDailyMission(
             @RequestPart("request") SubmitDailyMissionDto submitDto,
             @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
-            @AuthenticationPrincipal PrincipalDetails principalDetails){
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
         if (imageFiles != null && !imageFiles.isEmpty()) {
-            // Limit to 5 images
+            // 이미지 파일 최대 5개 제한
             int maxImages = Math.min(imageFiles.size(), 5);
             submitDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
         String providerId = principalDetails.getUser().getProviderId();
-        PostDto postDto = missionService.verifySubmissionAndCreatePost(providerId,submitDto);
+        PostDto postDto = missionService.verifySubmissionAndCreatePost(providerId, submitDto);
         return ResponseEntity.ok(postDto);
     }
 
+    /**
+     * 사용자의 완료된 미션 목록을 조회합니다.
+     * 커서 기반 페이지네이션을 사용합니다.
+     */
+    @GetMapping("/completed")
+    public ResponseEntity<List<CompletedMissionResponse>> getCompletedMissions(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @RequestParam(required = false) Long cursorId) {
+        try {
+            String providerId = principalDetails.getUser().getProviderId();
+            List<CompletedMissionResponse> completedMissions =
+                    completedMissionService.getUserCompletedMissions(providerId, cursorId);
+            return ResponseEntity.ok(completedMissions);
+        } catch (Exception e) {
+            log.error("완료된 미션 조회 오류", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
