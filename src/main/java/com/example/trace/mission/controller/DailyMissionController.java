@@ -1,13 +1,17 @@
 package com.example.trace.mission.controller;
 
+import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.AssignMissionRequest;
 import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.service.DailyMissionService;
 import com.example.trace.mission.dto.DailyMissionResponse;
 import com.example.trace.auth.dto.PrincipalDetails;
+import com.example.trace.mission.util.MissionDateUtil;
 import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.post.service.PostService;
+import com.example.trace.user.User;
+import com.example.trace.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -23,6 +27,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -34,6 +39,7 @@ import java.util.List;
 public class DailyMissionController {
 
     private final DailyMissionService missionService;
+    private final UserService userService;
 
     /**
      * 오늘 할당된 미션을 사용자에게 반환합니다.
@@ -58,7 +64,9 @@ public class DailyMissionController {
     @PostMapping("/assign/test")
     public ResponseEntity<DailyMissionResponse> assignDailyMissionsToUserForTest(@RequestBody AssignMissionRequest request){
         String providerId = request.getProviderId();
-        return ResponseEntity.ok(missionService.assignDailyMissionsToUserForTest(providerId));
+        User user = userService.getUser(providerId);
+        LocalDate missionDate = MissionDateUtil.getMissionDate();
+        return ResponseEntity.ok(missionService.assignDailyMissionsToUser(user,missionDate));
     }
 
     @PostMapping(value ="/submit",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})

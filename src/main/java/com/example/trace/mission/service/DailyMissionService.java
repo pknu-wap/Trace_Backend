@@ -10,6 +10,7 @@ import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.MissionRepository;
+import com.example.trace.mission.util.MissionDateUtil;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
@@ -44,7 +45,7 @@ public class DailyMissionService {
     private static final int MAX_CHANGES_PER_DAY = 10;
 
 
-    @Scheduled(cron = "0 00 16 * * *")
+    @Scheduled(cron = "0 0 7 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
@@ -58,36 +59,22 @@ public class DailyMissionService {
                     continue;
                 }
 
-                Mission randomMission = missionRepository.findRandomMission();
-                DailyMission dailyMission = DailyMission.builder()
-                                                    .user(user)
-                                                    .mission(randomMission)
-                                                    .date(today)
-                                                    .changeCount(0)
-                                                    .isVerified(false)
-                                                    .build();
-                dailyMissionRepository.save(dailyMission);
+                assignDailyMissionsToUser(user,today);
             }
         } catch (Exception e) {
             System.err.println("자동 미션 할당 실패: " + e.getMessage());
         }
     }
 
+
+
     @Transactional
-    public DailyMissionResponse assignDailyMissionsToUserForTest(String providerId){
-
-        LocalDate today = LocalDate.now();
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(()->new UsernameNotFoundException("해당 user가 없습니다 : " + providerId));
-
-        dailyMissionRepository.findByUserAndDate(user, today)
-                .ifPresent(existingDailyMission -> dailyMissionRepository.delete(existingDailyMission));
-
+    public DailyMissionResponse assignDailyMissionsToUser(User user,LocalDate date){
         Mission randomMission = missionRepository.findRandomMission();
         DailyMission dailyMission = DailyMission.builder()
                                                 .user(user)
                                                 .mission(randomMission)
-                                                .date(today)
+                                                .date(date)
                                                 .changeCount(0)
                                                 .isVerified(false)
                                                 .build();
@@ -97,12 +84,10 @@ public class DailyMissionService {
 
     @Transactional
     public DailyMissionResponse changeDailyMission(String providerId) {
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(() -> new MissionException(MissionErrorCode.USER_NOT_FOUND));
+        User user = userService.getUser(providerId);
+        LocalDate missionDate = MissionDateUtil.getMissionDate();
 
-        LocalDate today = LocalDate.now();
-
-        DailyMission currentMission = dailyMissionRepository.findByUserAndDate(user, today)
+        DailyMission currentMission = dailyMissionRepository.findByUserAndDate(user, missionDate)
                 .orElseThrow(() -> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         if(currentMission.isVerified()){
@@ -137,21 +122,19 @@ public class DailyMissionService {
      * providerId로 오늘의 미션을 조회합니다.
      */
     public DailyMissionResponse getTodaysMissionByProviderId(String providerId) {
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(()-> new MissionException(MissionErrorCode.USER_NOT_FOUND));
-
-        LocalDate today = LocalDate.now();
-        DailyMission todayDailyMission = dailyMissionRepository.findByUserAndDate(user,today)
+        User user = userService.getUser(providerId);
+        LocalDate missionDate = MissionDateUtil.getMissionDate();
+        DailyMission dailyMission = dailyMissionRepository.findByUserAndDate(user,missionDate)
                 .orElseThrow(()->new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
-        return DailyMissionResponse.fromEntity(todayDailyMission);
+        return DailyMissionResponse.fromEntity(dailyMission);
     }
 
     public PostDto verifySubmissionAndCreatePost(String providerId, SubmitDailyMissionDto submitDto){
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(()->new MissionException(MissionErrorCode.USER_NOT_FOUND));
-        LocalDate today = LocalDate.now();
-        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,today)
+        User user = userService.getUser(providerId);
+
+        LocalDate missionDate = MissionDateUtil.getMissionDate();
+        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,missionDate)
                 .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, assignedDailyMission);
