@@ -51,4 +51,11 @@ public interface PostRepositoryCustom {
             Long cursorId,
             int size
     );
+
+    List<PostFeedDto> findUserEmotedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size
+    );
 }

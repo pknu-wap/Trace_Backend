@@ -366,4 +366,52 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .fetch();
     }
 
+    @Override
+    public List<PostFeedDto> findUserEmotedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size) {
+
+        Expression<Long> totalEmotionCount = JPAExpressions
+                .select(emotion.count())
+                .from(emotion)
+                .where(emotion.post.eq(post));
+
+        return queryFactory
+                .select(Projections.constructor(PostFeedDto.class,
+                        post.id.as("postId"),
+                        post.postType,
+                        post.title,
+                        post.content,
+                        post.user.providerId,
+                        post.user.nickname,
+                        post.user.profileImageUrl,
+                        imageUrlExpr,
+                        post.viewCount,
+                        post.commentList.size().longValue(),
+                        post.createdAt,
+                        post.updatedAt,
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
+                ))
+                .from(post)
+                .leftJoin(post.user)
+                .leftJoin(post.verification)
+                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
+                .where(
+                    post.id.in(
+                        JPAExpressions
+                            .select(emotion.post.id)
+                            .from(emotion)
+                            .where(emotion.user.providerId.eq(providerId))
+                    ),
+                    postCursorCondition(cursorDateTime, cursorId)
+                )
+                .orderBy(post.createdAt.desc(), post.id.desc())
+                .limit(size + 1)
+                .fetch();
+    }
+
 }

@@ -28,4 +28,6 @@ public interface PostService {
 
     CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(PostCursorRequest request, String providerId);
 
+    CursorResponse<PostFeedDto> getUserEmotedPostsWithCursor(PostCursorRequest request, String providerId);
+
 } 
