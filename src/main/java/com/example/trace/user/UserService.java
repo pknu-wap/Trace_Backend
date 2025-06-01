@@ -34,6 +34,13 @@ public class UserService {
         return UserDto.fromEntity(user);
     }
 
+    public User getUser(String providerId){
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(()->new UserException(UserErrorCode.USER_NOT_FOUND));
+        return user;
+    }
+
+
     @Transactional
     public UserDto updateUserNickName(User user,UpdateNickNameRequest request){
         String newNickname = request.getNickname();
@@ -58,9 +65,6 @@ public class UserService {
         return UserDto.fromEntity(user);
     }
 
-    /**
-     * 모든 사용자 목록을 조회합니다.
-     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
