@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -54,8 +55,11 @@ public class DailyMissionService {
             List<User> users = userService.getAllUsers();
 
             for (User user : users) {
-                dailyMissionRepository.findByUserAndDate(user, today)
-                        .ifPresent(existing -> dailyMissionRepository.delete(existing));
+                Optional<DailyMission> existingMission = dailyMissionRepository.findByUserAndDate(user, today);
+
+                if(existingMission.isPresent()){
+                    continue;
+                }
 
                 Mission randomMission = missionRepository.findRandomMission();
                 DailyMission dailyMission = DailyMission.builder()
@@ -63,6 +67,7 @@ public class DailyMissionService {
                                                     .mission(randomMission)
                                                     .date(today)
                                                     .changeCount(0)
+                                                    .isVerified(false)
                                                     .build();
                 dailyMissionRepository.save(dailyMission);
             }
@@ -87,6 +92,7 @@ public class DailyMissionService {
                                                 .mission(randomMission)
                                                 .date(today)
                                                 .changeCount(0)
+                                                .isVerified(false)
                                                 .build();
         return DailyMissionResponse.fromEntity(dailyMissionRepository.save(dailyMission));
     }
@@ -101,6 +107,10 @@ public class DailyMissionService {
 
         DailyMission currentMission = dailyMissionRepository.findByUserAndDate(user, today)
                 .orElseThrow(() -> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+
+        if(currentMission.isVerified()){
+            throw new MissionException(MissionErrorCode.ALREADY_VERIFIED);
+        }
 
         if (currentMission.getChangeCount() >= MAX_CHANGES_PER_DAY) {
             throw new MissionException(MissionErrorCode.MISSION_CREATION_LIMIT_EXCEEDED);
@@ -141,12 +151,24 @@ public class DailyMissionService {
     }
 
     public PostDto verifySubmissionAndCreatePost(String providerId, SubmitDailyMissionDto submitDto){
-        VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, providerId);
+        User user = userRepository.findByProviderId(providerId)
+                .orElseThrow(()->new MissionException(MissionErrorCode.USER_NOT_FOUND));
+        LocalDate today = LocalDate.now();
+        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,today)
+                .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+
+        VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, assignedDailyMission);
+        if(!verificationDto.isImageResult() && !verificationDto.isTextResult()){
+            throw new MissionException(MissionErrorCode.VERIFICATION_FAIL);
+        }
+        assignedDailyMission.updateVerification(true);
+
         PostCreateDto postCreateDto = PostCreateDto.builder()
                 .postType(PostType.MISSION)
                 .title(submitDto.getTitle())
                 .content(submitDto.getContent())
                 .imageFiles(submitDto.getImageFiles())
+                .missionContent(assignedDailyMission.getMission().getDescription())
                 .build();
         
         PostDto postDto = postService.createPost(postCreateDto,providerId,verificationDto);

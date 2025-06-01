@@ -63,9 +63,11 @@ public class Post {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "verification_id")
+    @OneToOne(mappedBy = "post",cascade = CascadeType.ALL,orphanRemoval = true)
     private Verification verification;
+
+    @Column(name = "mission_content")
+    private String missionContent;
 
 
     public void addImage(PostImage image) {

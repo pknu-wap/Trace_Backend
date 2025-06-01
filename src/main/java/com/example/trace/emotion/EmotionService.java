@@ -34,8 +34,19 @@ public class EmotionService {
             return new EmotionResponse(true, emotionType.name());
         }
         else{
+            Post post = postRepository.findById(postId)
+                    .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
             EmotionType currentType = existingEmotion.getEmotionType();
-            if(currentType != emotionType) throw new IllegalStateException("게시글 하나 당 한 종류의 감정표현만 가능합니다.");
+            if(currentType != emotionType) {
+                emotionRepository.delete(existingEmotion);
+                Emotion emotion = Emotion.builder()
+                        .post(post)
+                        .user(user)
+                        .emotionType(emotionType)
+                        .build();
+                emotionRepository.save(emotion);
+                return new EmotionResponse(true, emotionType.name());
+            }
             else{
                 emotionRepository.delete(existingEmotion);
                 return new EmotionResponse(false, emotionType.name());
@@ -55,7 +66,7 @@ public class EmotionService {
                 .gratefulCount(gratefulCount)
                 .impressiveCount(impressiveCount)
                 .touchingCount(touchingCount)
-                .likableCount(likeableCount)
+                .likeableCount(likeableCount)
                 .build();
     }
 

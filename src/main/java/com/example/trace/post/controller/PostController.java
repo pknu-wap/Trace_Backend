@@ -2,6 +2,7 @@ package com.example.trace.post.controller;
 
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
+import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.cursor.CursorResponse;
 import com.example.trace.post.dto.cursor.PostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
@@ -95,6 +96,7 @@ public class PostController {
             int maxImages = Math.min(imageFiles.size(), 5);
             postCreateDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
+        postCreateDto.setPostType(PostType.GOOD_DEED);
         VerificationDto verificationDto = postVerificationService.verifyPost(postCreateDto, providerId);
         PostDto postDto = postService.createPost(postCreateDto,providerId,verificationDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
@@ -115,8 +117,9 @@ public class PostController {
             @PathVariable Long id,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         User user = principalDetails.getUser();
-        PostDto post = postService.getPostById(id,user);
-        return ResponseEntity.ok(post);
+        PostDto postDto = postService.getPostById(id,user);
+
+        return ResponseEntity.ok(postDto);
     }
 
     @PostMapping("/feed")

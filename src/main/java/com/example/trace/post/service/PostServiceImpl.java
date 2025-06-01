@@ -8,6 +8,7 @@ import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
+import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.cursor.CursorResponse;
@@ -42,6 +43,7 @@ public class PostServiceImpl implements PostService {
     private final S3UploadService s3UploadService;
     private final PostVerificationService postVerificationService;
     private final EmotionService emotionService;
+    private final DailyMissionRepository dailyMissionRepository;
 
     private static final int MAX_IMAGES = 5;
 
@@ -69,6 +71,11 @@ public class PostServiceImpl implements PostService {
         User user = userRepository.findByProviderId(ProviderId)
                 .orElseThrow(() -> new PostException(PostErrorCode.USER_NOT_FOUND));
 
+        if(verificationDto != null){
+            user.updateVerification(verificationDto);
+        }
+
+
         if (postCreateDto.getContent() == null || postCreateDto.getContent().isEmpty()) {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
         }
@@ -82,6 +89,7 @@ public class PostServiceImpl implements PostService {
             verification = postVerificationService.makeVerification(verificationDto);
         }
 
+
         Post post = Post.builder()
                 .postType(postCreateDto.getPostType())
                 .viewCount(0L)
@@ -89,7 +97,13 @@ public class PostServiceImpl implements PostService {
                 .content(postCreateDto.getContent())
                 .user(user)
                 .verification(verification)
+                .missionContent(postCreateDto.getPostType() == PostType.MISSION ? postCreateDto.getMissionContent() : null)
                 .build();
+
+        if(verification !=null){
+            verification.connectToPost(post);
+        }
+
 
         Post savedPost = postRepository.save(post);
 
@@ -119,7 +133,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto getPostById (Long postId, User user){
+    public PostDto getPostById (Long postId, User requestUser){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
@@ -127,13 +141,12 @@ public class PostServiceImpl implements PostService {
 
         EmotionCountDto emotionCountDto = emotionService.getEmotionCountsByType(postId);
 
-        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,user);
+        EmotionType yourEmotionType = emotionService.getYourEmotion(postId,requestUser);
 
         PostDto postDto = PostDto.fromEntity(post);
 
         postDto.setEmotionCount(emotionCountDto);
-        postDto.setOwner(post.getUser().getProviderId().equals(user.getProviderId()));
-
+        postDto.setOwner(post.getUser().getProviderId().equals(requestUser.getProviderId()));
         postDto.setYourEmotionType(yourEmotionType);
 
         return postDto;
@@ -145,16 +158,15 @@ public class PostServiceImpl implements PostService {
         // 커서 요청 처리
         int size = request.getSize() != null ? request.getSize() : 10;
 
-
         // 게시글 조회
         List<PostFeedDto> posts;
         if (request.getCursorDateTime() == null || request.getCursorId() == null) {
             // 첫 페이지 조회
-            posts = postRepository.findPostsWithCursor(null,null, size + 1, request.getPostType());
+            posts = postRepository.findPostsWithCursor(null,null, size + 1, request.getPostType(),providerId);
         } else {
             // 다음 페이지 조회
             posts = postRepository.findPostsWithCursor(
-                    request.getCursorDateTime(), request.getCursorId(), size + 1, request.getPostType() );
+                    request.getCursorDateTime(), request.getCursorId(), size + 1, request.getPostType(),providerId);
         }
 
 
@@ -205,7 +217,8 @@ public class PostServiceImpl implements PostService {
                     size + 1,
                     request.getPostType(),
                     keyword,
-                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL
+                    request.getSearchType() != null ? request.getSearchType() : SearchType.ALL,
+                    providerId
             );
         } else {
             // 기존 일반 조회 기능 사용
@@ -213,7 +226,8 @@ public class PostServiceImpl implements PostService {
                     request.getCursorDateTime(),
                     request.getCursorId(),
                     size + 1,
-                    request.getPostType()
+                    request.getPostType(),
+                    providerId
             );
         }
 

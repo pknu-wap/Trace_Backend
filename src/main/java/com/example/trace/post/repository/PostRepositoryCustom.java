@@ -13,7 +13,8 @@ public interface PostRepositoryCustom {
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType
+            PostType postType,
+            String providerId
     );
 
     List<CommentDto> findComments(
@@ -33,7 +34,8 @@ public interface PostRepositoryCustom {
             int size,
             PostType postType,
             String keyword,
-            SearchType searchType
+            SearchType searchType,
+            String providerId
     );
 
 }

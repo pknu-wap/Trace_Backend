@@ -1,10 +1,8 @@
 package com.example.trace.gpt.service;
 
 import com.example.trace.global.errorcode.GptErrorCode;
-import com.example.trace.global.errorcode.MissionErrorCode;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.GptException;
-import com.example.trace.global.exception.MissionException;
 import com.example.trace.global.exception.PostException;
 import com.example.trace.gpt.domain.Verification;
 import com.example.trace.gpt.dto.VerificationDto;
@@ -28,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,14 +54,7 @@ public class PostVerificationServiceImpl implements PostVerificationService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public VerificationDto verifyDailyMission(SubmitDailyMissionDto submitDto,String providerId){
-        LocalDate today = LocalDate.now();
-
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(()->new MissionException(MissionErrorCode.USER_NOT_FOUND));
-
-        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,today)
-                .orElseThrow(()->new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
+    public VerificationDto verifyDailyMission(SubmitDailyMissionDto submitDto,DailyMission assignedDailyMission){
 
         if (submitDto.getContent() == null || submitDto.getContent().isEmpty()) {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
