@@ -185,4 +185,14 @@ public class PostController {
         CursorResponse<PostFeedDto> response = postService.getMyPostsWithCursor(request, providerId);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/myCommentedPosts")
+    @Operation(summary = "내가 댓글 단 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내가 댓글을 단 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyCommentedPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getUserCommentedPostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
+    }
 } 

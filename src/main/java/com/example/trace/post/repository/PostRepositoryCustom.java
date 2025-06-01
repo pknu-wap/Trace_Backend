@@ -44,4 +44,11 @@ public interface PostRepositoryCustom {
             Long cursorId,
             int size
     );
+
+    List<PostFeedDto> findUserCommentedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size
+    );
 }
