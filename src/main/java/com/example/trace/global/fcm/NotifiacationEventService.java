@@ -34,7 +34,7 @@ public class NotifiacationEventService {
 
         fcmTokenNotificationService.sendDataOnlyMessage(
                 providerId,
-                postType.name() + " 게시판",
+                postType.getType() + "게시판",
                 "새로운 댓글이 달렸어요 : " + commentContent,
                 additionalData
         );
