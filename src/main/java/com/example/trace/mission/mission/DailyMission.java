@@ -11,6 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Entity
 @AllArgsConstructor
@@ -44,6 +45,11 @@ public class DailyMission {
     public void changeMission(Mission newMission) {
         this.mission = newMission;
         this.changeCount++;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        date = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void updateVerification(boolean isVerified){

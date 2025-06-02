@@ -1,10 +1,9 @@
-
 name: CI/CD
 
 on:
   push:
     branches: [ develop ]
-#테스트6
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,11 +34,28 @@ jobs:
           ARTIFACT_NAME=$(ls ./build/libs | grep -v "plain" | head -n 1)
           echo "artifact=$ARTIFACT_NAME" >> $GITHUB_ENV
 
+      # 새로 추가: 배포 패키지 생성
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy
+          cp ./build/libs/${{ env.artifact }} deploy/
+          # .ebextensions 폴더가 존재하면 복사
+          if [ -d ".ebextensions" ]; then
+            cp -r .ebextensions deploy/
+            echo ".ebextensions folder copied"
+          fi
+          cd deploy
+          zip -r ../deployment-package.zip .
+          cd ..
+          echo "Deployment package contents:"
+          unzip -l deployment-package.zip
+
       - name: Debug
         run: |
           echo "Artifact: ${{ env.artifact }}"
           echo "Access key exists: ${{ secrets.AWS_ACCESS_KEY != '' }}"
           echo "Secret key exists: ${{ secrets.AWS_SECRET_KEY != '' }}"
+          echo "Deployment package size: $(du -h deployment-package.zip)"
 
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@v20
@@ -50,4 +66,4 @@ jobs:
           environment_name: Trace111-env
           version_label: github-action-${{steps.current-time.outputs.formattedTime}}
           region: ap-northeast-2
-          deployment_package: ./build/libs/${{env.artifact}}
+          deployment_package: deployment-package.zip  # ZIP 파일로 변경
