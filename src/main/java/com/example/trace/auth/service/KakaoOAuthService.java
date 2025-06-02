@@ -6,6 +6,8 @@ import com.example.trace.global.errorcode.AuthErrorCode;
 import com.example.trace.global.errorcode.SignUpErrorCode;
 import com.example.trace.global.exception.AuthException;
 import com.example.trace.global.exception.SignUpException;
+import com.example.trace.global.fcm.FcmTokenService;
+import com.example.trace.global.fcm.NotifiacationEventService;
 import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.DailyMissionRepository;
@@ -49,6 +51,8 @@ public class KakaoOAuthService {
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtUtil jwtUtil;
     private final S3UploadService s3UploadService;
+    private final FcmTokenService fcmTokenService;
+    private final NotifiacationEventService notifiacationEventService;
 
     @Value("${oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId; // 카카오 로그인 api의앱 키.
@@ -86,6 +90,11 @@ public class KakaoOAuthService {
             // Generate JWT tokens for your app
             String accessToken = generateAccessToken(user);
             String refreshToken = generateRefreshToken(user);
+
+            String providreId = user.getProviderId();
+            String fcmToken = request.getFcmToken();
+
+            fcmTokenService.saveOrUpdateToken(providreId,fcmToken);
 
             return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
         } else {
@@ -131,6 +140,11 @@ public class KakaoOAuthService {
 
             userRepository.save(newUser);
 
+            String newUserProviderId = newUser.getProviderId();
+            String fcmToken = request.getFcmToken();
+
+            fcmTokenService.saveOrUpdateToken(newUserProviderId,fcmToken);
+
             Mission randomMission = missionRepository.findRandomMission();
             LocalDate today = LocalDate.now();
 
@@ -143,6 +157,8 @@ public class KakaoOAuthService {
                     .build();
 
             dailyMissionRepository.save(signUpDailyMission);
+
+            notifiacationEventService.sendDailyMissionAssignedNotification(newUser);
 
             // 4. Generate JWT tokens for your app
             String accessToken = generateAccessToken(newUser);
