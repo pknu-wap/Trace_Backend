@@ -38,4 +38,9 @@ public class FirebaseConfig {
         }
         return FirebaseApp.getInstance();
     }
+
+    @Bean
+    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        return FirebaseMessaging.getInstance(firebaseApp);
+    }
 }
