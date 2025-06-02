@@ -32,7 +32,7 @@ public class EmotionService {
                     .build();
             emotionRepository.save(emotion);
 
-            String providerId = user.getProviderId();
+            String providerId = post.getUser().getProviderId();
             PostType postType = post.getPostType();
             String nickName = user.getNickname();
             notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
@@ -51,7 +51,7 @@ public class EmotionService {
                         .build();
                 emotionRepository.save(emotion);
 
-                String providerId = user.getProviderId();
+                String providerId = post.getUser().getProviderId();
                 PostType postType = post.getPostType();
                 String nickName = user.getNickname();
                 notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);

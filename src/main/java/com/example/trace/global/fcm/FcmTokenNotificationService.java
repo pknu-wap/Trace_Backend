@@ -48,6 +48,8 @@ public class FcmTokenNotificationService {
                 .putAllData(data)  // notification 필드 대신 data 필드만 사용
                 .build();
 
+        log.info("fcm 알림 보내는 중..");
+
         try {
             String response = firebaseMessaging.send(message);
             log.info("FCM message send sucess - user ID: {}, reponse: {}", providerId, response);

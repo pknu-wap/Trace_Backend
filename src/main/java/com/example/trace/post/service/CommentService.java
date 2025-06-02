@@ -59,7 +59,7 @@ public class CommentService {
         String commentAuthorUserProviderId = commentAuthorUser.getProviderId();
 
         // 게시글 작성자가 댓글을 단게 아니라면 게시글 작성자에게 알림
-        if(postAuthorProviderId.equals(commentAuthorUserProviderId)){
+        if(!postAuthorProviderId.equals(commentAuthorUserProviderId)){
             PostType postType = postToAddComment.getPostType();
             String commentComment = comment.getContent();
             notifiacationEventService.sendCommentNotification(postAuthorProviderId,postId,postType,commentComment);
