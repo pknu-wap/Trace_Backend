@@ -71,6 +71,9 @@ jwt:
 
 # 로깅 설정
 logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
   level:
     root: INFO
     org.springframework.web: INFO
