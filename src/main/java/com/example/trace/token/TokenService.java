@@ -65,6 +65,6 @@ public class TokenService {
 
     public boolean checkTokenExpiration(String token) {
         jwtUtil.validateToken(token);
-        return true;
+        return false;
     }
 }
