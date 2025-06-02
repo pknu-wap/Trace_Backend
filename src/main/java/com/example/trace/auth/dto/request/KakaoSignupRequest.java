@@ -18,10 +18,6 @@ public class KakaoSignupRequest {
     private String signupToken; // 임시 회원가입 토큰
 
     @NotBlank
-    @Schema(description = "fcm 토큰")
-    private String fcmToken;
-
-    @NotBlank
     @Schema(description = "회원가입을 위한 providerId", example = "415367..")
     private String providerId;
 
