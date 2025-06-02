@@ -101,7 +101,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://awseb-e-n4aeqm25qy-stack-awsebrdsdatabase-sdzqapxzvgnq.c7oqi6uuacld.ap-northeast-2.rds.amazonaws.com:3306/ebdb?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://awseb-e-n4aeqm25qy-stack-awsebrdsdatabase-sdzqapxzvgnq.c7oqi6uuacld.ap-northeast-2.rds.amazonaws.com:3306/ebdb?serverTimezone=Asia/Seoul&connectionTimeZone=Asia/Seoul&forceConnectionTimeZoneToSession=true&useLegacyDatetimeCode=false
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
@@ -122,6 +122,8 @@ spring:
           batch_size: 20
         timezone:
           default_storage: NORMALIZE
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP
         order_inserts: true
         order_updates: true
         query:
