@@ -25,16 +25,32 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            byte[] decodedKey = Base64.getDecoder().decode(firebaseServiceAccountKey);
-            InputStream credentialsStream = new ByteArrayInputStream(decodedKey);
 
-            GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
+            // 디버깅용 로그 추가
+            System.out.println("BASE64 문자열 길이: " + firebaseServiceAccountKey.length());
+            System.out.println("첫 10글자: " + firebaseServiceAccountKey.substring(0, Math.min(10, firebaseServiceAccountKey.length())));
 
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(credentials)
-                    .build();
+            // 공백 체크
+            if (firebaseServiceAccountKey.contains(" ")) {
+                throw new IllegalArgumentException("BASE64 문자열에 공백이 포함되어 있습니다");
+            }
 
-            return FirebaseApp.initializeApp(options);
+            try {
+                byte[] decodedKey = Base64.getDecoder().decode(firebaseServiceAccountKey);
+                InputStream credentialsStream = new ByteArrayInputStream(decodedKey);
+                GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
+
+                FirebaseOptions options = FirebaseOptions.builder()
+                        .setCredentials(credentials)
+                        .build();
+
+                return FirebaseApp.initializeApp(options);
+            }
+            catch (IllegalArgumentException e){
+                System.err.println("BASE64 디코딩 실패: " + e.getMessage());
+                throw e;
+            }
+
         }
         return FirebaseApp.getInstance();
     }
