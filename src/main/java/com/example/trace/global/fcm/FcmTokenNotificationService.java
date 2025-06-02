@@ -50,7 +50,7 @@ public class FcmTokenNotificationService {
 
         try {
             String response = firebaseMessaging.send(message);
-            log.info("FCM 메시지 전송 성공 - 사용자 ID: {}, 응답: {}", providerId, response);
+            log.info("FCM message send sucess - user ID: {}, reponse: {}", providerId, response);
         } catch (FirebaseMessagingException e) {
             handleFirebaseException(e, providerId, token);
         }
@@ -67,7 +67,7 @@ public class FcmTokenNotificationService {
                 .collect(Collectors.toList());
 
         if (tokens.isEmpty()) {
-            log.warn("유효한 FCM 토큰을 찾을 수 없습니다");
+            log.warn("not found valid fcm token");
             return;
         }
 
@@ -99,14 +99,14 @@ public class FcmTokenNotificationService {
 
         switch (errorCode) {
             case UNREGISTERED:
-                log.warn("유효하지 않은 토큰으로 토큰 삭제 - 사용자 ID: {}", providerId);
+                log.warn("not valid token - provider ID: {}", providerId);
                 // 토큰 삭제 로직 추가 가능
                 break;
             case INVALID_ARGUMENT:
-                log.error("잘못된 인수 - 사용자 ID: {}, 오류: {}", providerId, e.getMessage());
+                log.error("wrong arg - provider ID: {}, error: {}", providerId, e.getMessage());
                 break;
             default:
-                log.error("FCM 메시지 전송 실패 - 사용자 ID: {}, 오류 코드: {}, 메시지: {}",
+                log.error("fcm messsage send failed - provider ID: {}, error : {}, message: {}",
                         providerId, errorCode, e.getMessage());
         }
     }
