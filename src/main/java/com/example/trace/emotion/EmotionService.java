@@ -32,11 +32,14 @@ public class EmotionService {
                     .build();
             emotionRepository.save(emotion);
 
-            String providerId = post.getUser().getProviderId();
-            PostType postType = post.getPostType();
-            String nickName = user.getNickname();
-            notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
+            if(!user.getProviderId().equals(post.getUser().getProviderId())){
+                String providerId = post.getUser().getProviderId();
+                PostType postType = post.getPostType();
+                String nickName = user.getNickname();
+                notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
+            }
             return new EmotionResponse(true, emotionType.name());
+
         }
         else{
             Post post = postRepository.findById(postId)
@@ -51,11 +54,13 @@ public class EmotionService {
                         .build();
                 emotionRepository.save(emotion);
 
-                String providerId = post.getUser().getProviderId();
-                PostType postType = post.getPostType();
-                String nickName = user.getNickname();
-                notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
-
+                if(!user.getProviderId().equals(post.getUser().getProviderId())){
+                    String providerId = post.getUser().getProviderId();
+                    PostType postType = post.getPostType();
+                    String nickName = user.getNickname();
+                    notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
+                    return new EmotionResponse(true, emotionType.name());
+                }
                 return new EmotionResponse(true, emotionType.name());
             }
             else{
