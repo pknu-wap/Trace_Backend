@@ -45,7 +45,7 @@ public class DailyMissionService {
     private static final int MAX_CHANGES_PER_DAY = 10;
 
 
-    @Scheduled(cron = "0 0 7 * * *")
+    @Scheduled(cron = "0 0 12 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
