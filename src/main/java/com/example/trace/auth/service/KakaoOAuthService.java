@@ -91,11 +91,6 @@ public class KakaoOAuthService {
             String accessToken = generateAccessToken(user);
             String refreshToken = generateRefreshToken(user);
 
-            String providreId = user.getProviderId();
-            String fcmToken = request.getFcmToken();
-
-            fcmTokenService.saveOrUpdateToken(providreId,fcmToken);
-
             return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
         } else {
             // 사용자 없으면 레디스에 임시 회원가입 토큰 저장
@@ -139,11 +134,6 @@ public class KakaoOAuthService {
                     .build();
 
             userRepository.save(newUser);
-
-            String newUserProviderId = newUser.getProviderId();
-            String fcmToken = request.getFcmToken();
-
-            fcmTokenService.saveOrUpdateToken(newUserProviderId,fcmToken);
 
             Mission randomMission = missionRepository.findRandomMission();
             LocalDate today = LocalDate.now();

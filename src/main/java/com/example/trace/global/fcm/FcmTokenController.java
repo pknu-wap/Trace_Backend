@@ -2,6 +2,7 @@ package com.example.trace.global.fcm;
 
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/fcm")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "fcm 토큰", description = "fcm 토큰 저장 API")
 public class FcmTokenController {
 
     private final FcmTokenService fcmTokenService;
@@ -21,7 +23,7 @@ public class FcmTokenController {
 
     @PostMapping("/tokens")
     public ResponseEntity<?> saveToken(
-            @AuthenticationPrincipal PrincipalDetails principalDetails, // 실제로는 인증된 사용자 정보에서 가져오는 것이 좋습니다
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
             @Valid @RequestBody FcmTokenRequest request) {
 
         String providerId = principalDetails.getUser().getProviderId();
