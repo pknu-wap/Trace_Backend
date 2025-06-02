@@ -1,4 +1,4 @@
-package com.example.trace.config;
+package com.example.trace.global.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

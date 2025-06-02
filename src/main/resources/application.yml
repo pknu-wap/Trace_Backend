@@ -50,6 +50,7 @@ springdoc:
     - /verification/**
     - /comments/**
     - /missions/**
+    - /fcm/**
 
 # OAuth2 클라이언트 설정 - API 키 관리, 외부에 노출되면 안 됨
 oauth2:
@@ -79,6 +80,8 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
 
+firebase:
+  config-path: firebase/firebase_service_key.json
 ---
 
 # 개발 환경 설정

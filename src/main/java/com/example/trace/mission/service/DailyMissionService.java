@@ -2,6 +2,7 @@ package com.example.trace.mission.service;
 
 import com.example.trace.global.errorcode.MissionErrorCode;
 import com.example.trace.global.exception.MissionException;
+import com.example.trace.global.fcm.NotifiacationEventService;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.DailyMissionResponse;
@@ -21,7 +22,6 @@ import com.example.trace.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +38,9 @@ public class DailyMissionService {
     private final MissionRepository missionRepository;
     private final DailyMissionRepository dailyMissionRepository;
     private final UserService userService;
-    private final UserRepository userRepository;
     private final PostVerificationService postVerificationService;
     private final PostService postService;
+    NotifiacationEventService notifiacationEventService;
     
     private static final int MAX_CHANGES_PER_DAY = 10;
 
@@ -78,7 +78,11 @@ public class DailyMissionService {
                                                 .changeCount(0)
                                                 .isVerified(false)
                                                 .build();
-        return DailyMissionResponse.fromEntity(dailyMissionRepository.save(dailyMission));
+
+        dailyMission = dailyMissionRepository.save(dailyMission);
+
+        notifiacationEventService.sendDailyMissionAssignedNotification(user);
+        return DailyMissionResponse.fromEntity(dailyMission);
     }
 
 
