@@ -1,12 +1,9 @@
 package com.example.trace.mission.controller;
 
 import com.example.trace.mission.dto.AssignMissionRequest;
-import com.example.trace.mission.dto.CompletedMissionRequest;
-import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.dto.DailyMissionResponse;
-import com.example.trace.mission.dto.CompletedMissionResponse;
+import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.service.DailyMissionService;
-import com.example.trace.mission.service.CompletedMissionService;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.post.dto.post.PostDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -34,7 +32,11 @@ import java.util.List;
 public class DailyMissionController {
 
     private final DailyMissionService missionService;
-    private final CompletedMissionService completedMissionService;
+
+    @Getter
+    public static class CursorRequest {
+        private Long cursorId;
+    }
 
     /**
      * 오늘 할당된 미션을 사용자에게 반환합니다.
@@ -68,7 +70,7 @@ public class DailyMissionController {
     /**
      * 미션 제출 시 선행 인증 후 게시글 등록
      */
-    @PostMapping(value = "/submit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "미션 제출 시, 선행 인증", description = "미션 제출 내용이 선행과 관련있는지 인증합니다.")
     @ApiResponses({
             @ApiResponse(
@@ -98,23 +100,20 @@ public class DailyMissionController {
     }
 
     /**
-     * 사용자의 완료된 미션 목록을 조회합니다.
-     * 커서 기반 페이지네이션을 사용합니다.
+     * 완료된 미션 목록 조회 (커서 기반 페이지네이션)
      */
     @PostMapping("/completed")
-    public ResponseEntity<List<CompletedMissionResponse>> getCompletedMissions(
+    public ResponseEntity<List<DailyMissionResponse>> getCompletedMissions(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @RequestBody(required = false) CompletedMissionRequest request) {
+            @RequestBody(required = false) CursorRequest request) {
         try {
             String providerId = principalDetails.getUser().getProviderId();
             Long cursorId = (request != null) ? request.getCursorId() : null;
-            List<CompletedMissionResponse> completedMissions =
-                    completedMissionService.getUserCompletedMissions(providerId, cursorId);
+            List<DailyMissionResponse> completedMissions = missionService.getCompletedMissions(providerId, cursorId);
             return ResponseEntity.ok(completedMissions);
         } catch (Exception e) {
             log.error("완료된 미션 조회 오류", e);
             return ResponseEntity.internalServerError().build();
         }
     }
-
 }

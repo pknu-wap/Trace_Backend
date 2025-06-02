@@ -10,8 +10,6 @@ import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.MissionRepository;
-import com.example.trace.mission.mission.CompletedMission;
-import com.example.trace.mission.repository.CompletedMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
@@ -21,6 +19,8 @@ import com.example.trace.user.UserService;
 import com.example.trace.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -42,10 +42,9 @@ public class DailyMissionService {
     private final UserRepository userRepository;
     private final PostVerificationService postVerificationService;
     private final PostService postService;
-    private final CompletedMissionRepository completedMissionRepository;
     
     private static final int MAX_CHANGES_PER_DAY = 10;
-
+    private static final int DEFAULT_PAGE_SIZE = 20;
 
     @Scheduled(cron = "0 00 16 * * *")
     @Transactional
@@ -96,7 +95,6 @@ public class DailyMissionService {
                                                 .build();
         return DailyMissionResponse.fromEntity(dailyMissionRepository.save(dailyMission));
     }
-
 
     @Transactional
     public DailyMissionResponse changeDailyMission(String providerId) {
@@ -161,8 +159,7 @@ public class DailyMissionService {
         if(!verificationDto.isImageResult() && !verificationDto.isTextResult()){
             throw new MissionException(MissionErrorCode.VERIFICATION_FAIL);
         }
-        assignedDailyMission.updateVerification(true);
-
+        
         PostCreateDto postCreateDto = PostCreateDto.builder()
                 .postType(PostType.MISSION)
                 .title(submitDto.getTitle())
@@ -171,26 +168,25 @@ public class DailyMissionService {
                 .missionContent(assignedDailyMission.getMission().getDescription())
                 .build();
         
-        PostDto postDto = postService.createPost(postCreateDto,providerId,verificationDto);
-        saveCompletedMission(providerId, postDto.getId());
+        PostDto postDto = postService.createPost(postCreateDto, providerId, verificationDto);
+        
+        // 미션 완료 처리
+        assignedDailyMission.updateVerification(true);
+        assignedDailyMission.updatePostId(postDto.getId());
+        dailyMissionRepository.save(assignedDailyMission);
         
         return postDto;
     }
 
-    private void saveCompletedMission(String providerId, Long postId) {
+    public List<DailyMissionResponse> getCompletedMissions(String providerId, Long cursorId) {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new MissionException(MissionErrorCode.USER_NOT_FOUND));
-        LocalDate today = LocalDate.now();
-        DailyMission dailyMission = dailyMissionRepository.findByUserAndDate(user, today)
-                .orElseThrow(() -> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
-
-        CompletedMission completedMission = CompletedMission.builder()
-                .user(user)
-                .mission(dailyMission.getMission())
-                .build();
-        completedMission.updatePostId(postId);
-        completedMissionRepository.save(completedMission);
+                
+        List<DailyMission> completedMissions = dailyMissionRepository
+                .findByUserWithCursor(user, cursorId, DEFAULT_PAGE_SIZE);
+        return completedMissions.stream()
+                .map(DailyMissionResponse::fromEntity)
+                .toList();
     }
-
 }
 

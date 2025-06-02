@@ -11,6 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @AllArgsConstructor
@@ -41,16 +42,25 @@ public class DailyMission {
     @Column(name="is_verified")
     private boolean isVerified;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "post_id")
+    private Long postId;
+
     public void changeMission(Mission newMission) {
         this.mission = newMission;
         this.changeCount++;
     }
 
-    public void updateVerification(boolean isVerified){
+    public void updateVerification(boolean isVerified) {
         this.isVerified = isVerified;
+        if (isVerified) {
+            this.completedAt = LocalDateTime.now();
+        }
     }
 
-
-
-
+    public void updatePostId(Long postId) {
+        this.postId = postId;
+    }
 }
