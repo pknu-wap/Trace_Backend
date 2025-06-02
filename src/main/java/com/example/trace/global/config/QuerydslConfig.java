@@ -1,4 +1,4 @@
-package com.example.trace.config;
+package com.example.trace.global.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
