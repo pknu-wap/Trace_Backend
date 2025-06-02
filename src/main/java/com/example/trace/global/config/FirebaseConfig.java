@@ -9,19 +9,26 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Base64;
+
+
 
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.config-path}")
-    private String firebaseConfigPath;
+    @Value("${FIREBASE_SERVICE_ACCOUNT_KEY}")
+    private String firebaseServiceAccountKey;
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            GoogleCredentials credentials = GoogleCredentials
-                    .fromStream(new ClassPathResource(firebaseConfigPath).getInputStream());
+            byte[] decodedKey = Base64.getDecoder().decode(firebaseServiceAccountKey);
+            InputStream credentialsStream = new ByteArrayInputStream(decodedKey);
+
+            GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(credentials)
@@ -30,10 +37,5 @@ public class FirebaseConfig {
             return FirebaseApp.initializeApp(options);
         }
         return FirebaseApp.getInstance();
-    }
-
-    @Bean
-    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
-        return FirebaseMessaging.getInstance(firebaseApp);
     }
 }
