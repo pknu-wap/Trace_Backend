@@ -8,6 +8,7 @@ import com.example.trace.post.domain.PostType;
 import com.example.trace.post.repository.PostRepository;
 import com.example.trace.user.User;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class EmotionService {
     private final NotifiacationEventService notifiacationEventService;
 
 
+    @Transactional
     public EmotionResponse toggleEmotion(Long postId,User user, EmotionType emotionType) {
         Emotion existingEmotion = emotionRepository.findByPostIdAndUser(postId,user);
 
