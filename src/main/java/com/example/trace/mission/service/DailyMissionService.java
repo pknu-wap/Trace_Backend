@@ -40,12 +40,12 @@ public class DailyMissionService {
     private final UserService userService;
     private final PostVerificationService postVerificationService;
     private final PostService postService;
-    NotifiacationEventService notifiacationEventService;
+    private final NotifiacationEventService notifiacationEventService;
     
     private static final int MAX_CHANGES_PER_DAY = 10;
 
 
-    @Scheduled(cron = "0 15 10 * * *")
+    @Scheduled(cron = "0 20 10 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
