@@ -54,7 +54,7 @@ public class NotifiacationEventService {
         fcmTokenNotificationService.sendDataOnlyMessage(
                 providerId,
                 postType.getType() + " 게시판",
-                nickName+ "님이 당신의 흔적에" + emotionType.getDescription() + "를 남겼어요.",
+                nickName+ "님이 당신의 흔적에 " + emotionType.getDescription() + "를 남겼어요",
                 additionalData
         );
     }
