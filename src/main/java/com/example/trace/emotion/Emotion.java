@@ -44,5 +44,9 @@ public class Emotion {
     @CreatedDate
     private LocalDateTime createdAt;
 
+    public void updateEmotion(EmotionType emotionType){
+        this.emotionType = emotionType;
+    }
+
 
 }

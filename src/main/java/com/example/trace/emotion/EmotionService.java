@@ -48,13 +48,8 @@ public class EmotionService {
                     .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
             EmotionType currentType = existingEmotion.getEmotionType();
             if(currentType != emotionType) {
-                emotionRepository.delete(existingEmotion);
-                Emotion emotion = Emotion.builder()
-                        .post(post)
-                        .user(user)
-                        .emotionType(emotionType)
-                        .build();
-                emotionRepository.save(emotion);
+                existingEmotion.updateEmotion(emotionType);
+                emotionRepository.save(existingEmotion);
 
                 if(!user.getProviderId().equals(post.getUser().getProviderId())){
                     String providerId = post.getUser().getProviderId();
