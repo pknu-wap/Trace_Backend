@@ -4,6 +4,10 @@ import com.example.trace.auth.Util.JwtUtil;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
+import com.example.trace.post.dto.cursor.CursorResponse;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.post.dto.post.PostFeedDto;
+import com.example.trace.post.service.PostService;
 import com.example.trace.user.dto.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +36,7 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final S3UploadService s3UploadService;
+    private final PostService postService;
 
 
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 가져옵니다.")
@@ -109,6 +114,36 @@ public class UserController {
         String accessToken = jwtUtil.resolveAccessToken(request);
         userService.deleteUser(accessToken);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/myPost")
+    @Operation(summary = "내 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getMyPostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/myCommentedPosts")
+    @Operation(summary = "내가 댓글 단 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내가 댓글을 단 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyCommentedPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getUserCommentedPostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/myEmotionPosts")
+    @Operation(summary = "내가 감정표현한 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내가 감정표현을 한 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyEmotedPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getUserEmotedPostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
     }
 
 }
