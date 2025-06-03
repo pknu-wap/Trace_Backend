@@ -72,6 +72,7 @@ public class PostVerificationServiceImpl implements PostVerificationService {
             VerificationDto result = verifyMissionTextOnly(requestContent, assignedContent);
             if (!result.isTextResult()) {
                 String failureReason = result.getFailureReason();
+                log.info("실패 이유 : {}",failureReason);
                 throw new GptException(GptErrorCode.WRONG_CONTENT, failureReason);
             }
             return result;
@@ -79,6 +80,7 @@ public class PostVerificationServiceImpl implements PostVerificationService {
             VerificationDto result = verifyMissionTextAndImages(requestContent, assignedContent, images);
             if (!result.isTextResult() || !result.isImageResult()) {
                 String failureReason = result.getFailureReason();
+                log.info("실패 이유 : {}",failureReason);
                 throw new GptException(GptErrorCode.WRONG_CONTENT, failureReason);
             }
             return result;
