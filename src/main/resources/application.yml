@@ -81,13 +81,11 @@ logging:
     console: UTF-8
     file: UTF-8
   level:
-    root: INFO
-    org.springframework.web: INFO
-    org.hibernate: INFO
-    com.example.trace: DEBUG
-    org.springframework.security: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    root: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    com.example.trace: INFO
+    org.springframework.security: WARN
 
 firebase:
   config-path: firebase/firebase_service_key.json
