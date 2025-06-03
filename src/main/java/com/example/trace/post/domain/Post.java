@@ -70,6 +70,9 @@ public class Post {
     @Column(name = "mission_content")
     private String missionContent;
 
+    @Transient
+    private boolean contentModified = false;
+
 
     public void addImage(PostImage image) {
         this.images.add(image);
@@ -87,6 +90,7 @@ public class Post {
     public void editPost(String title, String content) {
         this.title = title;
         this.content = content;
+        this.contentModified = true;
     }
 
     @PrePersist
@@ -97,6 +101,9 @@ public class Post {
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        if (contentModified) {
+            updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+            contentModified = false; // 플래그 리셋
+        }
     }
 }
