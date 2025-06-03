@@ -1,0 +1,1 @@
+web: java -Duser.timezone=Asia/Seoul -jar *.jar
