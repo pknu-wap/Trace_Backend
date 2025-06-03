@@ -38,4 +38,24 @@ public interface PostRepositoryCustom {
             String providerId
     );
 
+    List<PostFeedDto> findUserPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size
+    );
+
+    List<PostFeedDto> findUserCommentedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size
+    );
+
+    List<PostFeedDto> findUserEmotedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size
+    );
 }
