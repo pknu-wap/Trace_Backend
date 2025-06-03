@@ -7,10 +7,7 @@ import com.example.trace.post.repository.PostRepository;
 import com.example.trace.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +35,8 @@ public class EmotionService {
                     .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
             EmotionType currentType = existingEmotion.getEmotionType();
             if(currentType != emotionType) {
-                emotionRepository.delete(existingEmotion);
-                Emotion emotion = Emotion.builder()
-                        .post(post)
-                        .user(user)
-                        .emotionType(emotionType)
-                        .build();
-                emotionRepository.save(emotion);
+                existingEmotion.updateEmotion(emotionType);
+                emotionRepository.save(existingEmotion);
                 return new EmotionResponse(true, emotionType.name());
             }
             else{
