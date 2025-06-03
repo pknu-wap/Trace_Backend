@@ -84,7 +84,8 @@ logging:
     root: WARN
     org.springframework.web: WARN
     org.hibernate: WARN
-    com.example.trace: INFO
+    com.example.trace: INFO                    # 기본 INFO
+    com.example.trace.fcm: DEBUG               # FCM만 DEBUG
     org.springframework.security: WARN
 
 firebase:
