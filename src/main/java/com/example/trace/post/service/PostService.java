@@ -8,7 +8,6 @@ import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.user.User;
-import java.util.List;
 
 public interface PostService {
 

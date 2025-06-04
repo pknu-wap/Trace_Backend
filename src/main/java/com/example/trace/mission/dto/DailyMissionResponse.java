@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -13,6 +15,7 @@ import lombok.*;
 public class DailyMissionResponse {
     @Schema(name = "미션 내용", example = "대중교통에서 자리 양보하기")
     private String content;
+
     @Schema(name = "할당 받은 미션 변경 횟수", example = "4")
     private int changeCount;
 
@@ -20,12 +23,19 @@ public class DailyMissionResponse {
     @JsonProperty("isVerified")
     private boolean isVerified;
 
+    @Schema(name="미션 할당 날짜")
+    LocalDate date;
+
+    @Schema(name = "게시글 ID", example = "1")
+    private Long postId;
+
     public static DailyMissionResponse fromEntity(DailyMission dailyMission) {
         return DailyMissionResponse.builder()
                 .content(dailyMission.getMission().getDescription())
                 .changeCount(dailyMission.getChangeCount())
                 .isVerified(dailyMission.isVerified())
+                .date(dailyMission.getDate())
+                .postId(dailyMission.getPostId())
                 .build();
     }
-
 }

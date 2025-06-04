@@ -1,7 +1,6 @@
 package com.example.trace.mission.mission;
 
 import com.example.trace.user.User;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,6 +41,9 @@ public class DailyMission {
     @Column(name="is_verified")
     private boolean isVerified;
 
+    @Column(name = "post_id")
+    private Long postId;
+
     public void changeMission(Mission newMission) {
         this.mission = newMission;
         this.changeCount++;
@@ -52,8 +54,11 @@ public class DailyMission {
         date = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
-    public void updateVerification(boolean isVerified){
+    public void updateVerification(boolean isVerified,Long postId){
         this.isVerified = isVerified;
+        if (isVerified){
+            this.postId = postId;
+        }
     }
 
 
