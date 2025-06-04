@@ -1,6 +1,5 @@
 package com.example.trace.post.repository;
 
-import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.comment.CommentDto;
 import com.example.trace.post.dto.post.PostFeedDto;
@@ -13,7 +12,6 @@ public interface PostRepositoryCustom {
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType,
             String providerId
     );
 
@@ -32,7 +30,6 @@ public interface PostRepositoryCustom {
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType,
             String keyword,
             SearchType searchType,
             String providerId

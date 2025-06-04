@@ -30,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -102,7 +101,6 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }
 
-
     @GetMapping("/{id}")
     @Operation(summary = "게시글 조회", description = "게시글을 조회합니다.")
     @ApiResponse(
@@ -134,7 +132,6 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-
     @PutMapping("/{id}")
     @Operation(summary = "게시글 수정", description = "게시글을 수정합니다.")
     public ResponseEntity<PostDto> updatePost(
@@ -145,9 +142,6 @@ public class PostController {
         PostDto updatedPost = postService.updatePost(id, postUpdateDto, providerId);
         return ResponseEntity.ok(updatedPost);
     }
-
-
-
 
     @DeleteMapping("/{id}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
@@ -169,11 +163,18 @@ public class PostController {
     public ResponseEntity<CursorResponse<PostFeedDto>> searchPosts(
             @RequestBody PostCursorRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
-
         String providerId = principalDetails.getUser().getProviderId();
         CursorResponse<PostFeedDto> response = postService.searchPostsWithCursor(request, providerId);
-
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/myPosts")
+    @Operation(summary = "마이페이지 게시글 조회", description = "탭 별로 마이페이지 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyPagePosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getMyPagePostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
+    }
 } 

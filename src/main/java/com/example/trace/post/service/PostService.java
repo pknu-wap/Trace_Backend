@@ -19,15 +19,12 @@ public interface PostService {
     PostDto getPostById(Long id, User user);
 
     PostDto updatePost(Long id, PostUpdateDto postUpdateDto,String providerId);
+    
     CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String requesterId);
+    
     void deletePost(Long id, String providerId);
 
     CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId);
 
-    CursorResponse<PostFeedDto> getMyPostsWithCursor(PostCursorRequest request, String providerId);
-
-    CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(PostCursorRequest request, String providerId);
-
-    CursorResponse<PostFeedDto> getUserEmotedPostsWithCursor(PostCursorRequest request, String providerId);
-
+    CursorResponse<PostFeedDto> getMyPagePostsWithCursor(PostCursorRequest request, String providerId);
 } 

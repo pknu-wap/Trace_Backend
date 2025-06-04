@@ -41,20 +41,15 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     }
 
     StringExpression imageUrlExpr = Expressions.cases()
-            .when(post.images.isEmpty()).then("")
+            .when(post.images.isEmpty())
+            .then("")
             .otherwise(
                     JPAExpressions
                             .select(postImage.imageUrl)
                             .from(postImage)
-                            .where(
-                                    postImage.post.eq(post)
-                                            .and(postImage.id.eq(
-                                                    JPAExpressions
-                                                            .select(postImage.id.min())
-                                                            .from(postImage)
-                                                            .where(postImage.post.eq(post))
-                                            ))
-                            )
+                            .where(postImage.post.eq(post))
+                            .orderBy(postImage.id.asc())
+                            .limit(1)
             );
     Expression<Long> totalEmotionCount = JPAExpressions
             .select(emotion.count())
@@ -125,61 +120,10 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
             LocalDateTime cursorDateTime,
             Long cursorId,
             int size,
-            PostType postType,
             String providerId) {
 
-        // Q클래스 정의
-        QPost post = QPost.post;
-        QPostImage postImage = new QPostImage("postImage");
-
-        Expression<Long> totalEmotionCount = JPAExpressions
-                .select(emotion.count())
-                .from(emotion)
-                .where(emotion.post.eq(post));
-
-
-        return queryFactory
-                .select(Projections.constructor(PostFeedDto.class,
-                        post.id.as("postId"),
-                        post.postType,
-                        post.title,
-                        post.content,
-                        post.user.providerId,
-                        post.user.nickname,
-                        post.user.profileImageUrl,
-                        imageUrlExpr,
-                        post.viewCount,
-                        post.commentList.size().longValue(),
-                        post.createdAt,
-                        post.updatedAt,
-                        isVerifiedExpr,
-                        isOwnerExpr(providerId),
-                        totalEmotionCount
-                ))
-                .from(post)
-                .leftJoin(post.user)
-                .leftJoin(post.verification) // verification 조인 추가
-                .where(
-                        postTypeEq(postType),
-                        postCursorCondition(cursorDateTime, cursorId)
-                )
-                .orderBy(post.createdAt.desc(), post.id.desc())
-                .limit(size + 1)
-                .fetch();
-    }
-
-    @Override
-    public List<PostFeedDto> findPostsWithCursorAndSearch(
-            LocalDateTime cursorDateTime,
-            Long cursorId,
-            int size,
-            PostType postType,
-            String keyword,
-            SearchType searchType,
-            String providerId) {
-
-        QPost post = QPost.post;
-        QPostImage postImage = new QPostImage("postImage");
+        BooleanExpression isOwner = (providerId != null) ? post.user.providerId.eq(providerId) : null;
+        Expression<Long> totalEmotionCount = emotion.count();
 
         return queryFactory
                 .select(Projections.constructor(PostFeedDto.class,
@@ -202,13 +146,65 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
+                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
+                .leftJoin(emotion).on(emotion.post.eq(post))
                 .where(
-                        postTypeEq(postType),
-                        postCursorCondition(cursorDateTime, cursorId),
-                        searchCondition(keyword, searchType) // 새로 추가할 검색 조건
+                        postCursorCondition(cursorDateTime, cursorId)
                 )
+                .groupBy(post.id, post.postType, post.title, post.content, post.user.providerId,
+                        post.user.nickname, post.user.profileImageUrl, imageUrlExpr, post.viewCount,
+                        post.commentList.size(), post.createdAt, post.updatedAt, isVerifiedExpr,
+                        isOwnerExpr(providerId))
                 .orderBy(post.createdAt.desc(), post.id.desc())
-                .limit(size + 1)
+                .limit(size)
+                .fetch();
+    }
+
+    @Override
+    public List<PostFeedDto> findPostsWithCursorAndSearch(
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size,
+            String keyword,
+            SearchType searchType,
+            String providerId) {
+
+        BooleanExpression isOwner = (providerId != null) ? post.user.providerId.eq(providerId) : null;
+        Expression<Long> totalEmotionCount = emotion.count();
+
+        return queryFactory
+                .select(Projections.constructor(PostFeedDto.class,
+                        post.id.as("postId"),
+                        post.postType,
+                        post.title,
+                        post.content,
+                        post.user.providerId,
+                        post.user.nickname,
+                        post.user.profileImageUrl,
+                        imageUrlExpr,
+                        post.viewCount,
+                        post.commentList.size().longValue(),
+                        post.createdAt,
+                        post.updatedAt,
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
+                ))
+                .from(post)
+                .leftJoin(post.user)
+                .leftJoin(post.verification)
+                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
+                .leftJoin(emotion).on(emotion.post.eq(post))
+                .where(
+                        searchCondition(keyword, searchType),
+                        postCursorCondition(cursorDateTime, cursorId)
+                )
+                .groupBy(post.id, post.postType, post.title, post.content, post.user.providerId,
+                        post.user.nickname, post.user.profileImageUrl, imageUrlExpr, post.viewCount,
+                        post.commentList.size(), post.createdAt, post.updatedAt, isVerifiedExpr,
+                        isOwnerExpr(providerId))
+                .orderBy(post.createdAt.desc(), post.id.desc())
+                .limit(size)
                 .fetch();
     }
 
@@ -308,6 +304,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
+                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                         post.user.providerId.eq(providerId),
                         postCursorCondition(cursorDateTime, cursorId)
@@ -350,6 +347,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
+                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                     post.id.in(
                         JPAExpressions
@@ -400,6 +398,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
+                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                     post.id.in(
                         JPAExpressions

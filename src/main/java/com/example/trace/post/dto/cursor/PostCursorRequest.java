@@ -1,6 +1,6 @@
 package com.example.trace.post.dto.cursor;
 
-import com.example.trace.post.domain.PostType;
+import com.example.trace.post.domain.MyPageTab;
 import com.example.trace.post.domain.cursor.SearchType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
@@ -22,8 +22,8 @@ public class PostCursorRequest {
     private Long cursorId;
     @Schema(description = "페이지 크기", example = "10")
     private Integer size = 10; // 기본 페이지 크기
-    @Schema(description = "게시글 타입", example = "MISSION")
-    private PostType postType; // 필터링을 위한 게시글 타입 (선택적)
+    @Schema(description = "마이페이지 탭 타입", example = "WRITTEN_POSTS")
+    private MyPageTab myPageTab;
 
     // 검색을 위한 필드
     @Schema(description = "검색 키워드", example = "")
