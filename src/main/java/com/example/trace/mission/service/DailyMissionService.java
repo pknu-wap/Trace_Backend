@@ -45,7 +45,7 @@ public class DailyMissionService {
     private static final int DEFAULT_PAGE_SIZE = 20;
 
 
-    @Scheduled(cron = "0 0 9 * * *")
+    @Scheduled(cron = "0 0 7 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
