@@ -18,7 +18,6 @@ import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.post.service.PostService;
 import com.example.trace.user.User;
 import com.example.trace.user.UserService;
-import com.example.trace.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,7 +44,7 @@ public class DailyMissionService {
     private static final int MAX_CHANGES_PER_DAY = 10;
 
 
-    @Scheduled(cron = "0 0 9 * * *")
+    @Scheduled(cron = "0 0 7 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
