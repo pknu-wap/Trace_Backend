@@ -16,5 +16,4 @@ public class KakaoLoginRequest {
     @NotBlank
     @Schema(description = "ID 토큰", example = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6IlJPTEVfVVNFUiIsI...")
     private String idToken;
-
 }

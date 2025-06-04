@@ -1,6 +1,5 @@
 package com.example.trace;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -13,11 +12,11 @@ import java.util.TimeZone;
 @EnableFeignClients
 public class TraceApplication {
 
-	@PostConstruct
-	public void init() {
+	static {
+		// JVM 시작 시점에 시간대 설정
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		System.setProperty("user.timezone", "Asia/Seoul");
 	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(TraceApplication.class, args);
 	}

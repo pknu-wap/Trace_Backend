@@ -1,10 +1,11 @@
 package com.example.trace.post.service;
 
-import com.example.trace.auth.repository.UserRepository;
 import com.example.trace.global.errorcode.PostErrorCode;
 import com.example.trace.global.exception.PostException;
+import com.example.trace.global.fcm.NotifiacationEventService;
 import com.example.trace.post.domain.Comment;
 import com.example.trace.post.domain.Post;
+import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.comment.CommentCreateDto;
 import com.example.trace.post.dto.comment.CommentDto;
 import com.example.trace.post.dto.cursor.CommentCursorRequest;
@@ -12,7 +13,7 @@ import com.example.trace.post.dto.cursor.CursorResponse;
 import com.example.trace.post.repository.CommentRepository;
 import com.example.trace.post.repository.PostRepository;
 import com.example.trace.user.User;
-import jakarta.persistence.EntityNotFoundException;
+import com.example.trace.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,9 @@ import java.util.Map;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final NotifiacationEventService notifiacationEventService;
+
 
 
     public CommentDto addComment(Long postId ,CommentCreateDto commentCreateDto, String providerId) {
@@ -35,42 +38,50 @@ public class CommentService {
         Post postToAddComment = postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User commentAuthorUser = userService.getUser(providerId);
 
         if (commentCreateDto.getContent() == null || commentCreateDto.getContent().isEmpty()) {
             throw new PostException(PostErrorCode.CONTENT_EMPTY);
         }
 
+
         Comment comment = Comment.builder()
                 .post(postToAddComment)
                 .content(commentCreateDto.getContent())
-                .user(user)
+                .user(commentAuthorUser)
                 .isDeleted(false)
                 .build();
         commentRepository.save(comment);
 
         postToAddComment.addComment(comment);
 
+        String postAuthorProviderId = postToAddComment.getUser().getProviderId();
+        String commentAuthorUserProviderId = commentAuthorUser.getProviderId();
+
+        // 게시글 작성자가 댓글을 단게 아니라면 게시글 작성자에게 알림
+        if(!postAuthorProviderId.equals(commentAuthorUserProviderId)){
+            PostType postType = postToAddComment.getPostType();
+            String commentComment = comment.getContent();
+            notifiacationEventService.sendCommentNotification(postAuthorProviderId,postId,postType,commentComment);
+        }
+
         return CommentDto.fromEntity(comment,providerId);
     }
 
     @Transactional
-    public CommentDto deleteComment(Long commentId, String ProviderId) {
-        User user = userRepository.findByProviderId(ProviderId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    public CommentDto deleteComment(Long commentId, String providerId) {
+        User user = userService.getUser(providerId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new PostException(PostErrorCode.COMMENT_NOT_FOUND));
         if (!comment.getUser().getId().equals(user.getId())) {
             throw new PostException(PostErrorCode.COMMENT_DELETE_FORBIDDEN);
         }
         comment.removeSelf();
-        return CommentDto.fromEntity(comment,ProviderId);
+        return CommentDto.fromEntity(comment,providerId);
     }
 
     public CommentDto addChildrenComment(Long postId,Long commentId,CommentCreateDto commentCreateDto, String providerId){
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userService.getUser(providerId);
 
         Comment parentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new PostException(PostErrorCode.COMMENT_NOT_FOUND));
@@ -100,8 +111,7 @@ public class CommentService {
     }
 
     public CursorResponse<CommentDto> getCommentsWithCursor(CommentCursorRequest request,Long postId, String providerId) {
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userService.getUser(providerId);
 
         // 커서 기반 부모 댓글의 id 리스트 가져오기
         List<Long> parentCommentsIdList;

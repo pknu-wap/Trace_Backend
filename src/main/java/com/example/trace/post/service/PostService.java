@@ -9,7 +9,6 @@ import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.user.User;
 
-
 public interface PostService {
 
     PostDto createPost(PostCreateDto postCreateDto,Long userId);
@@ -23,5 +22,11 @@ public interface PostService {
     void deletePost(Long id, String providerId);
 
     CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId);
+
+    CursorResponse<PostFeedDto> getMyPostsWithCursor(PostCursorRequest request, String providerId);
+
+    CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(PostCursorRequest request, String providerId);
+
+    CursorResponse<PostFeedDto> getUserEmotedPostsWithCursor(PostCursorRequest request, String providerId);
 
 } 

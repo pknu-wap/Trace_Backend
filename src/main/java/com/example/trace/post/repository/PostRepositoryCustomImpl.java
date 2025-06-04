@@ -41,15 +41,20 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     }
 
     StringExpression imageUrlExpr = Expressions.cases()
-            .when(post.images.isEmpty())
-            .then("")
+            .when(post.images.isEmpty()).then("")
             .otherwise(
                     JPAExpressions
                             .select(postImage.imageUrl)
                             .from(postImage)
-                            .where(postImage.post.eq(post))
-                            .orderBy(postImage.id.asc())
-                            .limit(1)
+                            .where(
+                                    postImage.post.eq(post)
+                                            .and(postImage.id.eq(
+                                                    JPAExpressions
+                                                            .select(postImage.id.min())
+                                                            .from(postImage)
+                                                            .where(postImage.post.eq(post))
+                                            ))
+                            )
             );
     Expression<Long> totalEmotionCount = JPAExpressions
             .select(emotion.count())
@@ -142,7 +147,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                         post.user.providerId,
                         post.user.nickname,
                         post.user.profileImageUrl,
-                        imageUrlExpr, // 서브쿼리 사용
+                        imageUrlExpr,
                         post.viewCount,
                         post.commentList.size().longValue(),
                         post.createdAt,
@@ -154,10 +159,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification) // verification 조인 추가
-                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                         postTypeEq(postType),
-                        postCursorCondition(cursorDateTime, cursorId) // 커서 조건
+                        postCursorCondition(cursorDateTime, cursorId)
                 )
                 .orderBy(post.createdAt.desc(), post.id.desc())
                 .limit(size + 1)
@@ -198,7 +202,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
-                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                         postTypeEq(postType),
                         postCursorCondition(cursorDateTime, cursorId),
@@ -277,5 +280,138 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
         return allComments;
     }
 
+    @Override
+    public List<PostFeedDto> findUserPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size) {
+
+        return queryFactory
+                .select(Projections.constructor(PostFeedDto.class,
+                        post.id.as("postId"),
+                        post.postType,
+                        post.title,
+                        post.content,
+                        post.user.providerId,
+                        post.user.nickname,
+                        post.user.profileImageUrl,
+                        imageUrlExpr,
+                        post.viewCount,
+                        post.commentList.size().longValue(),
+                        post.createdAt,
+                        post.updatedAt,
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
+                ))
+                .from(post)
+                .leftJoin(post.user)
+                .leftJoin(post.verification)
+                .where(
+                        post.user.providerId.eq(providerId),
+                        postCursorCondition(cursorDateTime, cursorId)
+                )
+                .orderBy(post.createdAt.desc(), post.id.desc())
+                .limit(size + 1)
+                .fetch();
+    }
+
+    @Override
+    public List<PostFeedDto> findUserCommentedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size) {
+
+        Expression<Long> totalEmotionCount = JPAExpressions
+                .select(emotion.count())
+                .from(emotion)
+                .where(emotion.post.eq(post));
+
+        return queryFactory
+                .select(Projections.constructor(PostFeedDto.class,
+                        post.id.as("postId"),
+                        post.postType,
+                        post.title,
+                        post.content,
+                        post.user.providerId,
+                        post.user.nickname,
+                        post.user.profileImageUrl,
+                        imageUrlExpr,
+                        post.viewCount,
+                        post.commentList.size().longValue(),
+                        post.createdAt,
+                        post.updatedAt,
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
+                ))
+                .from(post)
+                .leftJoin(post.user)
+                .leftJoin(post.verification)
+                .where(
+                    post.id.in(
+                        JPAExpressions
+                            .select(comment.post.id)
+                            .from(comment)
+                            .where(
+                                comment.user.providerId.eq(providerId),
+                                comment.isDeleted.eq(false)
+                            )
+                    ),
+                    postCursorCondition(cursorDateTime, cursorId)
+                )
+                .orderBy(post.createdAt.desc(), post.id.desc())
+                .limit(size + 1)
+                .fetch();
+    }
+
+    @Override
+    public List<PostFeedDto> findUserEmotedPosts(
+            String providerId,
+            LocalDateTime cursorDateTime,
+            Long cursorId,
+            int size) {
+
+        Expression<Long> totalEmotionCount = JPAExpressions
+                .select(emotion.count())
+                .from(emotion)
+                .where(emotion.post.eq(post));
+
+        return queryFactory
+                .select(Projections.constructor(PostFeedDto.class,
+                        post.id.as("postId"),
+                        post.postType,
+                        post.title,
+                        post.content,
+                        post.user.providerId,
+                        post.user.nickname,
+                        post.user.profileImageUrl,
+                        imageUrlExpr,
+                        post.viewCount,
+                        post.commentList.size().longValue(),
+                        post.createdAt,
+                        post.updatedAt,
+                        isVerifiedExpr,
+                        isOwnerExpr(providerId),
+                        totalEmotionCount
+                ))
+                .from(post)
+                .leftJoin(post.user)
+                .leftJoin(post.verification)
+                .where(
+                    post.id.in(
+                        JPAExpressions
+                            .select(emotion.post.id)
+                            .from(emotion)
+                            .where(emotion.user.providerId.eq(providerId))
+                    ),
+                    postCursorCondition(cursorDateTime, cursorId)
+                )
+                .orderBy(post.createdAt.desc(), post.id.desc())
+                .limit(size + 1)
+                .fetch();
+    }
 
 }

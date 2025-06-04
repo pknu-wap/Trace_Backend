@@ -1,7 +1,6 @@
 package com.example.trace.mission.mission;
 
 import com.example.trace.user.User;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +10,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @AllArgsConstructor
@@ -42,9 +41,6 @@ public class DailyMission {
     @Column(name="is_verified")
     private boolean isVerified;
 
-    @Column(name = "completed_at")
-    private LocalDateTime completedAt;
-
     @Column(name = "post_id")
     private Long postId;
 
@@ -53,14 +49,19 @@ public class DailyMission {
         this.changeCount++;
     }
 
-    public void updateVerification(boolean isVerified) {
+    @PrePersist
+    protected void onCreate() {
+        date = LocalDate.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    public void updateVerification(boolean isVerified,Long postId){
         this.isVerified = isVerified;
-        if (isVerified) {
-            this.completedAt = LocalDateTime.now();
+        if (isVerified){
+            this.postId = postId;
         }
     }
 
-    public void updatePostId(Long postId) {
-        this.postId = postId;
-    }
+
+
+
 }

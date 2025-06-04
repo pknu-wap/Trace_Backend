@@ -3,7 +3,7 @@ spring:
   application:
     name: Trace
   profiles:
-    active: dev
+    active: local
   jpa:
     properties:
       hibernate:
@@ -11,6 +11,12 @@ spring:
           time_zone: Asia/Seoul
         timezone:
           default_storage: NORMALIZE
+        session:
+          events:
+            log:
+              LOGGING_LEVEL_SESSION: TRACE
+        connection:
+          timezone: Asia/Seoul
   # 한국 시간대 설정 추가
   jackson:
     time-zone: Asia/Seoul
@@ -50,6 +56,7 @@ springdoc:
     - /verification/**
     - /comments/**
     - /missions/**
+    - /fcm/**
 
 # OAuth2 클라이언트 설정 - API 키 관리, 외부에 노출되면 안 됨
 oauth2:
@@ -70,15 +77,19 @@ jwt:
 
 # 로깅 설정
 logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
   level:
-    root: INFO
-    org.springframework.web: INFO
-    org.hibernate: INFO
-    com.example.trace: DEBUG
-    org.springframework.security: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    root: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    com.example.trace: DEBUG                    # 기본 INFO
+    com.example.trace.fcm: DEBUG               # FCM만 DEBUG
+    org.springframework.security: WARN
 
+firebase:
+  config-path: firebase/firebase_service_key.json
 ---
 
 # 개발 환경 설정
@@ -89,7 +100,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://awseb-e-n4aeqm25qy-stack-awsebrdsdatabase-sdzqapxzvgnq.c7oqi6uuacld.ap-northeast-2.rds.amazonaws.com:3306/ebdb?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://awseb-e-n4aeqm25qy-stack-awsebrdsdatabase-sdzqapxzvgnq.c7oqi6uuacld.ap-northeast-2.rds.amazonaws.com:3306/ebdb?serverTimezone=Asia/Seoul&connectionTimeZone=Asia/Seoul&forceConnectionTimeZoneToSession=true&useLegacyDatetimeCode=false
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
@@ -99,7 +110,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -110,6 +121,8 @@ spring:
           batch_size: 20
         timezone:
           default_storage: NORMALIZE
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP
         order_inserts: true
         order_updates: true
         query:
@@ -124,7 +137,7 @@ spring:
 
   sql:
     init:
-      mode: always
+      mode: never
 
 # 서버 설정
 server:
@@ -178,7 +191,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:

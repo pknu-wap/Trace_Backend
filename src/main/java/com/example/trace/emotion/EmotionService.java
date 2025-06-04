@@ -2,10 +2,13 @@ package com.example.trace.emotion;
 
 import com.example.trace.emotion.dto.EmotionCountDto;
 import com.example.trace.emotion.dto.EmotionResponse;
+import com.example.trace.global.fcm.NotifiacationEventService;
 import com.example.trace.post.domain.Post;
+import com.example.trace.post.domain.PostType;
 import com.example.trace.post.repository.PostRepository;
 import com.example.trace.user.User;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +17,10 @@ import org.springframework.stereotype.Service;
 public class EmotionService {
     private final EmotionRepository emotionRepository;
     private final PostRepository postRepository;
+    private final NotifiacationEventService notifiacationEventService;
 
 
+    @Transactional
     public EmotionResponse toggleEmotion(Long postId,User user, EmotionType emotionType) {
         Emotion existingEmotion = emotionRepository.findByPostIdAndUser(postId,user);
 
@@ -28,7 +33,15 @@ public class EmotionService {
                     .emotionType(emotionType)
                     .build();
             emotionRepository.save(emotion);
+
+            if(!user.getProviderId().equals(post.getUser().getProviderId())){
+                String providerId = post.getUser().getProviderId();
+                PostType postType = post.getPostType();
+                String nickName = user.getNickname();
+                notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
+            }
             return new EmotionResponse(true, emotionType.name());
+
         }
         else{
             Post post = postRepository.findById(postId)
@@ -37,6 +50,14 @@ public class EmotionService {
             if(currentType != emotionType) {
                 existingEmotion.updateEmotion(emotionType);
                 emotionRepository.save(existingEmotion);
+
+                if(!user.getProviderId().equals(post.getUser().getProviderId())){
+                    String providerId = post.getUser().getProviderId();
+                    PostType postType = post.getPostType();
+                    String nickName = user.getNickname();
+                    notifiacationEventService.sendEmotionNotification(providerId,postId,postType,emotionType,nickName);
+                    return new EmotionResponse(true, emotionType.name());
+                }
                 return new EmotionResponse(true, emotionType.name());
             }
             else{

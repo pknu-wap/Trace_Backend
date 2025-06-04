@@ -5,7 +5,10 @@ import com.example.trace.mission.dto.DailyMissionResponse;
 import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.service.DailyMissionService;
 import com.example.trace.auth.dto.PrincipalDetails;
+import com.example.trace.mission.util.MissionDateUtil;
 import com.example.trace.post.dto.post.PostDto;
+import com.example.trace.user.User;
+import com.example.trace.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -22,7 +25,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/missions")
@@ -32,6 +37,7 @@ import java.util.List;
 public class DailyMissionController {
 
     private final DailyMissionService missionService;
+    private final UserService userService;
 
     @Getter
     public static class CursorRequest {
@@ -58,19 +64,15 @@ public class DailyMissionController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 테스트용 미션 할당 엔드포인트
-     */
     @PostMapping("/assign/test")
     public ResponseEntity<DailyMissionResponse> assignDailyMissionsToUserForTest(@RequestBody AssignMissionRequest request){
         String providerId = request.getProviderId();
-        return ResponseEntity.ok(missionService.assignDailyMissionsToUserForTest(providerId));
+        User user = userService.getUser(providerId);
+        LocalDate missionDate = MissionDateUtil.getMissionDate();
+        return ResponseEntity.ok(missionService.assignDailyMissionsToUser(user,missionDate));
     }
 
-    /**
-     * 미션 제출 시 선행 인증 후 게시글 등록
-     */
-    @PostMapping(value = "/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value ="/submit",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(summary = "미션 제출 시, 선행 인증", description = "미션 제출 내용이 선행과 관련있는지 인증합니다.")
     @ApiResponses({
             @ApiResponse(
@@ -88,14 +90,14 @@ public class DailyMissionController {
     public ResponseEntity<PostDto> submitDailyMission(
             @RequestPart("request") SubmitDailyMissionDto submitDto,
             @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
-            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+            @AuthenticationPrincipal PrincipalDetails principalDetails){
         if (imageFiles != null && !imageFiles.isEmpty()) {
-            // 이미지 파일 최대 5개 제한
+            // Limit to 5 images
             int maxImages = Math.min(imageFiles.size(), 5);
             submitDto.setImageFiles(imageFiles.subList(0, maxImages));
         }
         String providerId = principalDetails.getUser().getProviderId();
-        PostDto postDto = missionService.verifySubmissionAndCreatePost(providerId, submitDto);
+        PostDto postDto = missionService.verifySubmissionAndCreatePost(providerId,submitDto);
         return ResponseEntity.ok(postDto);
     }
 

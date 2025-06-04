@@ -12,7 +12,11 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "emotions")
+@Table(name = "emotions",
+       uniqueConstraints = @UniqueConstraint(
+           name = "UK_emotions_post_user",
+           columnNames = {"post_id", "user_id"}
+       ))
 @Builder
 @Getter
 @NoArgsConstructor
@@ -43,5 +47,6 @@ public class Emotion {
     public void updateEmotion(EmotionType emotionType){
         this.emotionType = emotionType;
     }
+
 
 }

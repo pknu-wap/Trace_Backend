@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 public class DailyMissionResponse {
     @Schema(name = "미션 내용", example = "대중교통에서 자리 양보하기")
     private String content;
+
     @Schema(name = "할당 받은 미션 변경 횟수", example = "4")
     private int changeCount;
 
@@ -23,8 +23,8 @@ public class DailyMissionResponse {
     @JsonProperty("isVerified")
     private boolean isVerified;
 
-    @Schema(name = "완료 일자", example = "2024-04-01T12:00:00")
-    private LocalDateTime completedAt;
+    @Schema(name="미션 할당 날짜")
+    LocalDate date;
 
     @Schema(name = "게시글 ID", example = "1")
     private Long postId;
@@ -34,7 +34,7 @@ public class DailyMissionResponse {
                 .content(dailyMission.getMission().getDescription())
                 .changeCount(dailyMission.getChangeCount())
                 .isVerified(dailyMission.isVerified())
-                .completedAt(dailyMission.getCompletedAt())
+                .date(dailyMission.getDate())
                 .postId(dailyMission.getPostId())
                 .build();
     }

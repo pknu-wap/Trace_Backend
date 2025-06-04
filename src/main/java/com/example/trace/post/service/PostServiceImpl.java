@@ -298,6 +298,129 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(PostCursorRequest request, String providerId) {
+        // 커서 요청 처리
+        int size = request.getSize() != null ? request.getSize() : 10;
 
+        // 게시글 조회
+        List<PostFeedDto> posts;
+        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
+            // 첫 페이지 조회
+            posts = postRepository.findUserCommentedPosts(providerId, null, null, size + 1);
+        } else {
+            // 다음 페이지 조회
+            posts = postRepository.findUserCommentedPosts(
+                    providerId, request.getCursorDateTime(), request.getCursorId(), size + 1);
+        }
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        // 커서 메타데이터 생성
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> getMyPostsWithCursor(PostCursorRequest request, String providerId) {
+        // 커서 요청 처리
+        int size = request.getSize() != null ? request.getSize() : 10;
+
+        // 게시글 조회
+        List<PostFeedDto> posts;
+        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
+            // 첫 페이지 조회
+            posts = postRepository.findUserPosts(providerId, null, null, size + 1);
+        } else {
+            // 다음 페이지 조회
+            posts = postRepository.findUserPosts(
+                    providerId, request.getCursorDateTime(), request.getCursorId(), size + 1);
+        }
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        // 커서 메타데이터 생성
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> getUserEmotedPostsWithCursor(PostCursorRequest request, String providerId) {
+        // 커서 요청 처리
+        int size = request.getSize() != null ? request.getSize() : 10;
+
+        // 게시글 조회
+        List<PostFeedDto> posts;
+        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
+            // 첫 페이지 조회
+            posts = postRepository.findUserEmotedPosts(providerId, null, null, size + 1);
+        } else {
+            // 다음 페이지 조회
+            posts = postRepository.findUserEmotedPosts(
+                    providerId, request.getCursorDateTime(), request.getCursorId(), size + 1);
+        }
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        // 커서 메타데이터 생성
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
 
 }

@@ -8,13 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,12 +56,12 @@ public class Post {
     @OneToMany(mappedBy = "post", orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
 
-    @CreationTimestamp
-    @Column(name = "created_at")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "post",cascade = CascadeType.ALL,orphanRemoval = true)
@@ -68,6 +69,9 @@ public class Post {
 
     @Column(name = "mission_content")
     private String missionContent;
+
+    @Transient
+    private boolean contentModified = false;
 
 
     public void addImage(PostImage image) {
@@ -86,5 +90,20 @@ public class Post {
     public void editPost(String title, String content) {
         this.title = title;
         this.content = content;
+        this.contentModified = true;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        if (contentModified) {
+            updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+            contentModified = false; // 플래그 리셋
+        }
     }
 }
