@@ -1,15 +1,12 @@
 package com.example.trace.mission.controller;
 
-import com.example.trace.auth.repository.UserRepository;
-import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.AssignMissionRequest;
+import com.example.trace.mission.dto.DailyMissionResponse;
 import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.service.DailyMissionService;
-import com.example.trace.mission.dto.DailyMissionResponse;
 import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.mission.util.MissionDateUtil;
 import com.example.trace.post.dto.post.PostDto;
-import com.example.trace.post.service.PostService;
 import com.example.trace.user.User;
 import com.example.trace.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -40,6 +38,11 @@ public class DailyMissionController {
 
     private final DailyMissionService missionService;
     private final UserService userService;
+
+    @Getter
+    public static class CursorRequest {
+        private Long cursorId;
+    }
 
     /**
      * 오늘 할당된 미션을 사용자에게 반환합니다.
@@ -98,4 +101,21 @@ public class DailyMissionController {
         return ResponseEntity.ok(postDto);
     }
 
+    /**
+     * 완료된 미션 목록 조회 (커서 기반 페이지네이션)
+     */
+    @PostMapping("/completed")
+    public ResponseEntity<List<DailyMissionResponse>> getCompletedMissions(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @RequestBody(required = false) CursorRequest request) {
+        try {
+            String providerId = principalDetails.getUser().getProviderId();
+            Long cursorId = (request != null) ? request.getCursorId() : null;
+            List<DailyMissionResponse> completedMissions = missionService.getCompletedMissions(providerId, cursorId);
+            return ResponseEntity.ok(completedMissions);
+        } catch (Exception e) {
+            log.error("완료된 미션 조회 오류", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

@@ -40,11 +40,12 @@ public class DailyMissionService {
     private final PostVerificationService postVerificationService;
     private final PostService postService;
     private final NotifiacationEventService notifiacationEventService;
-    
+
     private static final int MAX_CHANGES_PER_DAY = 10;
+    private static final int DEFAULT_PAGE_SIZE = 20;
 
 
-    @Scheduled(cron = "0 0 7 * * *")
+    @Scheduled(cron = "0 0 9 * * *")
     @Transactional
     public void assignDailyMissionsToAllUsers() {
         try {
@@ -144,7 +145,6 @@ public class DailyMissionService {
         if(!verificationDto.isImageResult() && !verificationDto.isTextResult()){
             throw new MissionException(MissionErrorCode.VERIFICATION_FAIL);
         }
-        assignedDailyMission.updateVerification(true);
 
         PostCreateDto postCreateDto = PostCreateDto.builder()
                 .postType(PostType.MISSION)
@@ -153,8 +153,24 @@ public class DailyMissionService {
                 .imageFiles(submitDto.getImageFiles())
                 .missionContent(assignedDailyMission.getMission().getDescription())
                 .build();
-        return postService.createPost(postCreateDto,providerId,verificationDto);
+
+        PostDto postDto = postService.createPost(postCreateDto, providerId, verificationDto);
+
+        // 미션 완료 처리
+        assignedDailyMission.updateVerification(true,postDto.getId());
+        dailyMissionRepository.save(assignedDailyMission);
+
+        return postDto;
     }
 
+    public List<DailyMissionResponse> getCompletedMissions(String providerId, Long cursorId) {
+        User user = userService.getUser(providerId);
+
+        List<DailyMission> completedMissions = dailyMissionRepository
+                .findByUserWithCursor(user, cursorId, DEFAULT_PAGE_SIZE);
+        return completedMissions.stream()
+                .map(DailyMissionResponse::fromEntity)
+                .toList();
+    }
 }
 

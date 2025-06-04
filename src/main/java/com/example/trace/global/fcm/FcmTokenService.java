@@ -1,6 +1,5 @@
 package com.example.trace.global.fcm;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
