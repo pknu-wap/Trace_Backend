@@ -6,6 +6,7 @@ import com.example.trace.global.fcm.NotifiacationEventService;
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.mission.dto.DailyMissionResponse;
+import com.example.trace.mission.dto.MissionCursorRequest;
 import com.example.trace.mission.dto.SubmitDailyMissionDto;
 import com.example.trace.mission.mission.DailyMission;
 import com.example.trace.mission.repository.DailyMissionRepository;
@@ -13,6 +14,7 @@ import com.example.trace.mission.mission.Mission;
 import com.example.trace.mission.repository.MissionRepository;
 import com.example.trace.mission.util.MissionDateUtil;
 import com.example.trace.post.domain.PostType;
+import com.example.trace.post.dto.cursor.CursorResponse;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.post.service.PostService;
@@ -53,7 +55,7 @@ public class DailyMissionService {
             List<User> users = userService.getAllUsers();
 
             for (User user : users) {
-                Optional<DailyMission> existingMission = dailyMissionRepository.findByUserAndDate(user, today);
+                Optional<DailyMission> existingMission = dailyMissionRepository.findByUserAndCreatedAt(user, today);
 
                 if(existingMission.isPresent()){
                     continue;
@@ -74,7 +76,7 @@ public class DailyMissionService {
         DailyMission dailyMission = DailyMission.builder()
                                                 .user(user)
                                                 .mission(randomMission)
-                                                .date(date)
+                                                .createdAt(date)
                                                 .changeCount(0)
                                                 .isVerified(false)
                                                 .build();
@@ -91,7 +93,7 @@ public class DailyMissionService {
         User user = userService.getUser(providerId);
         LocalDate missionDate = MissionDateUtil.getMissionDate();
 
-        DailyMission currentMission = dailyMissionRepository.findByUserAndDate(user, missionDate)
+        DailyMission currentMission = dailyMissionRepository.findByUserAndCreatedAt(user, missionDate)
                 .orElseThrow(() -> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         if(currentMission.isVerified()){
@@ -128,7 +130,7 @@ public class DailyMissionService {
     public DailyMissionResponse getTodaysMissionByProviderId(String providerId) {
         User user = userService.getUser(providerId);
         LocalDate missionDate = MissionDateUtil.getMissionDate();
-        DailyMission dailyMission = dailyMissionRepository.findByUserAndDate(user,missionDate)
+        DailyMission dailyMission = dailyMissionRepository.findByUserAndCreatedAt(user,missionDate)
                 .orElseThrow(()->new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         return DailyMissionResponse.fromEntity(dailyMission);
@@ -138,7 +140,7 @@ public class DailyMissionService {
         User user = userService.getUser(providerId);
 
         LocalDate missionDate = MissionDateUtil.getMissionDate();
-        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndDate(user,missionDate)
+        DailyMission assignedDailyMission = dailyMissionRepository.findByUserAndCreatedAt(user,missionDate)
                 .orElseThrow(()-> new MissionException(MissionErrorCode.DAILYMISSION_NOT_FOUND));
 
         VerificationDto verificationDto = postVerificationService.verifyDailyMission(submitDto, assignedDailyMission);
@@ -163,14 +165,36 @@ public class DailyMissionService {
         return postDto;
     }
 
-    public List<DailyMissionResponse> getCompletedMissions(String providerId, Long cursorId) {
-        User user = userService.getUser(providerId);
+    public CursorResponse<DailyMissionResponse> getCompletedMissions(User user,MissionCursorRequest request) {
+        Integer size = request.getSize() != null ? request.getSize() : DEFAULT_PAGE_SIZE;
 
         List<DailyMission> completedMissions = dailyMissionRepository
-                .findByUserWithCursor(user, cursorId, DEFAULT_PAGE_SIZE);
-        return completedMissions.stream()
+                .findVerifiedMissionsWithCursor(user, request.getCursorDateTime().toLocalDate(), size + 1);
+
+        boolean hasNext = false;
+        if (completedMissions.size() > size) {
+            hasNext = true;
+            completedMissions = completedMissions.subList(0, size);
+        }
+
+        List<DailyMissionResponse> missionResponses = completedMissions.stream()
                 .map(DailyMissionResponse::fromEntity)
                 .toList();
+
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!missionResponses.isEmpty() && hasNext) {
+            DailyMissionResponse lastMission = missionResponses.get(missionResponses.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastMission.getCreatedAt().atStartOfDay()) // LocalDate를 LocalDateTime으로 변환
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<DailyMissionResponse>builder()
+                .content(missionResponses)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
     }
 }
 

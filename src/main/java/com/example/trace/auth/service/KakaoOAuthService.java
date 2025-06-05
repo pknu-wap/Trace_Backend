@@ -141,7 +141,7 @@ public class KakaoOAuthService {
             DailyMission signUpDailyMission = DailyMission.builder()
                     .mission(randomMission)
                     .user(newUser)
-                    .date(today)
+                    .createdAt(today)
                     .changeCount(0)
                     .isVerified(false)
                     .build();

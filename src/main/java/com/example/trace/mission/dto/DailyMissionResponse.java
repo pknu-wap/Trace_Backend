@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Builder
 @Schema(description = "미션 응답")
 public class DailyMissionResponse {
+
     @Schema(name = "미션 내용", example = "대중교통에서 자리 양보하기")
     private String content;
 
@@ -24,17 +25,19 @@ public class DailyMissionResponse {
     private boolean isVerified;
 
     @Schema(name="미션 할당 날짜")
-    LocalDate date;
+    LocalDate createdAt;
 
     @Schema(name = "게시글 ID", example = "1")
     private Long postId;
+
+
 
     public static DailyMissionResponse fromEntity(DailyMission dailyMission) {
         return DailyMissionResponse.builder()
                 .content(dailyMission.getMission().getDescription())
                 .changeCount(dailyMission.getChangeCount())
                 .isVerified(dailyMission.isVerified())
-                .date(dailyMission.getDate())
+                .createdAt(dailyMission.getCreatedAt())
                 .postId(dailyMission.getPostId())
                 .build();
     }

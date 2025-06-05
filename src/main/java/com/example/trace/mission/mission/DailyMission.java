@@ -33,7 +33,7 @@ public class DailyMission {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Mission mission;
 
-    private LocalDate date;
+    private LocalDate createdAt;
 
     @Column(nullable = false)
     private int changeCount;
@@ -51,7 +51,7 @@ public class DailyMission {
 
     @PrePersist
     protected void onCreate() {
-        date = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        createdAt = LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void updateVerification(boolean isVerified,Long postId){
