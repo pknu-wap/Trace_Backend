@@ -12,7 +12,7 @@ import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.user.dto.UserPostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
@@ -154,7 +154,7 @@ public class PostServiceImpl implements PostService {
 
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> getAllPostsWithCursor(UserPostCursorRequest request, String providerId) {
         // 커서 요청 처리
         int size = request.getSize() != null ? request.getSize() : 10;
 
@@ -162,13 +162,12 @@ public class PostServiceImpl implements PostService {
         List<PostFeedDto> posts;
         if (request.getCursorDateTime() == null || request.getCursorId() == null) {
             // 첫 페이지 조회
-            posts = postRepository.findPostsWithCursor(null,null, size + 1, request.getPostType(),providerId);
+            posts = postRepository.findPostsWithCursor(null, null, size + 1, providerId);
         } else {
             // 다음 페이지 조회
             posts = postRepository.findPostsWithCursor(
-                    request.getCursorDateTime(), request.getCursorId(), size + 1, request.getPostType(),providerId);
+                    request.getCursorDateTime(), request.getCursorId(), size + 1, providerId);
         }
-
 
         // 다음 페이지 여부 확인
         boolean hasNext = false;
@@ -197,9 +196,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> searchPostsWithCursor(UserPostCursorRequest request, String providerId) {
         int size = request.getSize() != null ? request.getSize() : 10;
-
 
         // 검색어가 있는 경우 검색 메서드 사용, 없으면 기존 메서드 사용
         List<PostFeedDto> posts;
@@ -215,7 +213,6 @@ public class PostServiceImpl implements PostService {
                     request.getCursorDateTime(),
                     request.getCursorId(),
                     size + 1,
-                    request.getPostType(),
                     keyword,
                     request.getSearchType() != null ? request.getSearchType() : SearchType.ALL,
                     providerId
@@ -226,7 +223,6 @@ public class PostServiceImpl implements PostService {
                     request.getCursorDateTime(),
                     request.getCursorId(),
                     size + 1,
-                    request.getPostType(),
                     providerId
             );
         }
@@ -299,7 +295,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(UserPostCursorRequest request, String providerId) {
         // 커서 요청 처리
         int size = request.getSize() != null ? request.getSize() : 10;
 
@@ -341,61 +337,37 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getMyPostsWithCursor(PostCursorRequest request, String providerId) {
-        // 커서 요청 처리
+    public CursorResponse<PostFeedDto> getMyPagePostsWithCursor(UserPostCursorRequest request, String providerId) {
         int size = request.getSize() != null ? request.getSize() : 10;
-
-        // 게시글 조회
         List<PostFeedDto> posts;
-        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
-            // 첫 페이지 조회
-            posts = postRepository.findUserPosts(providerId, null, null, size + 1);
-        } else {
-            // 다음 페이지 조회
-            posts = postRepository.findUserPosts(
-                    providerId, request.getCursorDateTime(), request.getCursorId(), size + 1);
-        }
 
-        // 다음 페이지 여부 확인
-        boolean hasNext = false;
-        if (posts.size() > size) {
-            hasNext = true;
-            posts = posts.subList(0, size);
-        }
-
-        // 커서 메타데이터 생성
-        CursorResponse.CursorMeta nextCursor = null;
-        if (!posts.isEmpty() && hasNext) {
-            PostFeedDto lastPost = posts.get(posts.size() - 1);
-            nextCursor = CursorResponse.CursorMeta.builder()
-                    .dateTime(lastPost.getCreatedAt())
-                    .id(lastPost.getPostId())
-                    .build();
-        }
-
-        // 응답 생성
-        return CursorResponse.<PostFeedDto>builder()
-                .content(posts)
-                .hasNext(hasNext)
-                .cursor(nextCursor)
-                .build();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getUserEmotedPostsWithCursor(PostCursorRequest request, String providerId) {
-        // 커서 요청 처리
-        int size = request.getSize() != null ? request.getSize() : 10;
-
-        // 게시글 조회
-        List<PostFeedDto> posts;
-        if (request.getCursorDateTime() == null || request.getCursorId() == null) {
-            // 첫 페이지 조회
-            posts = postRepository.findUserEmotedPosts(providerId, null, null, size + 1);
-        } else {
-            // 다음 페이지 조회
-            posts = postRepository.findUserEmotedPosts(
-                    providerId, request.getCursorDateTime(), request.getCursorId(), size + 1);
+        switch (request.getMyPageTab()) {
+            case WRITTEN_POSTS:
+                posts = postRepository.findUserPosts(
+                    providerId,
+                    request.getCursorDateTime(),
+                    request.getCursorId(),
+                    size + 1
+                );
+                break;
+            case COMMENTED_POSTS:
+                posts = postRepository.findUserCommentedPosts(
+                    providerId,
+                    request.getCursorDateTime(),
+                    request.getCursorId(),
+                    size + 1
+                );
+                break;
+            case REACTED_POSTS:
+                posts = postRepository.findUserEmotedPosts(
+                    providerId,
+                    request.getCursorDateTime(),
+                    request.getCursorId(),
+                    size + 1
+                );
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid MyPageTab type");
         }
 
         // 다음 페이지 여부 확인
