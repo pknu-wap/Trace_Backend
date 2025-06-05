@@ -2,13 +2,12 @@ package com.example.trace.post.service;
 
 import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.user.dto.UserPostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.post.dto.post.PostUpdateDto;
 import com.example.trace.post.dto.post.PostCreateDto;
 import com.example.trace.post.dto.post.PostDto;
 import com.example.trace.user.User;
-import java.util.List;
 
 public interface PostService {
 
@@ -20,11 +19,11 @@ public interface PostService {
 
     PostDto updatePost(Long id, PostUpdateDto postUpdateDto,String providerId);
     
-    CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String requesterId);
+    CursorResponse<PostFeedDto> getAllPostsWithCursor(UserPostCursorRequest request, String requesterId);
     
     void deletePost(Long id, String providerId);
 
-    CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId);
+    CursorResponse<PostFeedDto> searchPostsWithCursor(UserPostCursorRequest request, String providerId);
 
-    CursorResponse<PostFeedDto> getMyPagePostsWithCursor(PostCursorRequest request, String providerId);
+    CursorResponse<PostFeedDto> getMyPagePostsWithCursor(UserPostCursorRequest request, String providerId);
 } 

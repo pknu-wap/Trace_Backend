@@ -5,7 +5,7 @@ import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.user.dto.UserPostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.post.service.PostService;
 import com.example.trace.user.dto.UserDto;
@@ -85,8 +85,6 @@ public class UserController {
     }
 
 
-
-
     @Operation(summary = "로그아웃", description = "로그아웃 합니다.")
     @ApiResponse(
             responseCode = "200",
@@ -115,6 +113,16 @@ public class UserController {
         String accessToken = jwtUtil.resolveAccessToken(request);
         userService.deleteUser(accessToken);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/myPosts")
+    @Operation(summary = "마이페이지 게시글 조회", description = "탭 별로 마이페이지 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyPagePosts(
+            @RequestBody UserPostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getMyPagePostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
     }
 
 }

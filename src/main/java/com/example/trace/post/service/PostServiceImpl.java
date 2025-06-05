@@ -12,7 +12,7 @@ import com.example.trace.mission.repository.DailyMissionRepository;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.domain.cursor.SearchType;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.user.dto.UserPostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.file.FileType;
@@ -154,7 +154,7 @@ public class PostServiceImpl implements PostService {
 
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getAllPostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> getAllPostsWithCursor(UserPostCursorRequest request, String providerId) {
         // 커서 요청 처리
         int size = request.getSize() != null ? request.getSize() : 10;
 
@@ -196,7 +196,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> searchPostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> searchPostsWithCursor(UserPostCursorRequest request, String providerId) {
         int size = request.getSize() != null ? request.getSize() : 10;
 
         // 검색어가 있는 경우 검색 메서드 사용, 없으면 기존 메서드 사용
@@ -295,7 +295,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> getUserCommentedPostsWithCursor(UserPostCursorRequest request, String providerId) {
         // 커서 요청 처리
         int size = request.getSize() != null ? request.getSize() : 10;
 
@@ -337,7 +337,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public CursorResponse<PostFeedDto> getMyPagePostsWithCursor(PostCursorRequest request, String providerId) {
+    public CursorResponse<PostFeedDto> getMyPagePostsWithCursor(UserPostCursorRequest request, String providerId) {
         int size = request.getSize() != null ? request.getSize() : 10;
         List<PostFeedDto> posts;
 

@@ -4,7 +4,7 @@ import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.post.dto.cursor.PostCursorRequest;
+import com.example.trace.user.dto.UserPostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
@@ -123,7 +123,7 @@ public class PostController {
     @PostMapping("/feed")
     @Operation(summary = "게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 게시글을 조회합니다.")
     public ResponseEntity<CursorResponse<PostFeedDto>> getAllPosts(
-            @RequestBody PostCursorRequest request,
+            @RequestBody UserPostCursorRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         String providerId = principalDetails.getUser().getProviderId();
         CursorResponse<PostFeedDto> response = postService.getAllPostsWithCursor(
@@ -161,20 +161,11 @@ public class PostController {
     @PostMapping("/search")
     @Operation(summary = "게시글 검색 (커서 기반 페이징)", description = "키워드로 게시글을 검색하고 커서 기반 페이징으로 조회합니다.")
     public ResponseEntity<CursorResponse<PostFeedDto>> searchPosts(
-            @RequestBody PostCursorRequest request,
+            @RequestBody UserPostCursorRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         String providerId = principalDetails.getUser().getProviderId();
         CursorResponse<PostFeedDto> response = postService.searchPostsWithCursor(request, providerId);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/myPosts")
-    @Operation(summary = "마이페이지 게시글 조회", description = "탭 별로 마이페이지 게시글을 조회합니다.")
-    public ResponseEntity<CursorResponse<PostFeedDto>> getMyPagePosts(
-            @RequestBody PostCursorRequest request,
-            @AuthenticationPrincipal PrincipalDetails principalDetails) {
-        String providerId = principalDetails.getUser().getProviderId();
-        CursorResponse<PostFeedDto> response = postService.getMyPagePostsWithCursor(request, providerId);
-        return ResponseEntity.ok(response);
-    }
 } 

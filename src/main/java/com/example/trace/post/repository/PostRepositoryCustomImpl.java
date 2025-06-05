@@ -41,15 +41,21 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     }
 
     StringExpression imageUrlExpr = Expressions.cases()
-            .when(post.images.isEmpty())
-            .then("")
+            .when(post.images.isEmpty()).then("")
+
             .otherwise(
                     JPAExpressions
                             .select(postImage.imageUrl)
                             .from(postImage)
-                            .where(postImage.post.eq(post))
-                            .orderBy(postImage.id.asc())
-                            .limit(1)
+                            .where(
+                                    postImage.post.eq(post)
+                                            .and(postImage.id.eq(
+                                                    JPAExpressions
+                                                            .select(postImage.id.min())
+                                                            .from(postImage)
+                                                            .where(postImage.post.eq(post))
+                                            ))
+                            )
             );
     Expression<Long> totalEmotionCount = JPAExpressions
             .select(emotion.count())
@@ -304,7 +310,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
-                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                         post.user.providerId.eq(providerId),
                         postCursorCondition(cursorDateTime, cursorId)
@@ -347,7 +352,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
-                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                     post.id.in(
                         JPAExpressions
@@ -398,7 +402,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
                 .from(post)
                 .leftJoin(post.user)
                 .leftJoin(post.verification)
-                .leftJoin(post.images, postImage).on(postImage.order.eq(1))
                 .where(
                     post.id.in(
                         JPAExpressions
