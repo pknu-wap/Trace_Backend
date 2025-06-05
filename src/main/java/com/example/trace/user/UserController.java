@@ -5,7 +5,7 @@ import com.example.trace.auth.dto.PrincipalDetails;
 import com.example.trace.file.FileType;
 import com.example.trace.file.S3UploadService;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.user.dto.UserPostCursorRequest;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.post.service.PostService;
 import com.example.trace.user.dto.UserDto;
@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -76,13 +75,15 @@ public class UserController {
     }
 
     @Operation(summary = "유저 닉네임 수정", description = "유저 닉네임을 수정합니다.")
-    @PutMapping("/profile/nickname")
+    @PutMapping("profile/nickname")
     public ResponseEntity<UserDto> updateUserNickName(
-            @Valid @RequestBody UpdateNickNameRequest request,
+            @RequestBody UpdateNickNameRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         User user = principalDetails.getUser();
         return ResponseEntity.ok(userService.updateUserNickName(user, request));
     }
+
+
 
 
     @Operation(summary = "로그아웃", description = "로그아웃 합니다.")
@@ -115,13 +116,33 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/myPosts")
-    @Operation(summary = "마이페이지 게시글 조회", description = "탭 별로 마이페이지 게시글을 조회합니다.")
-    public ResponseEntity<CursorResponse<PostFeedDto>> getMyPagePosts(
-            @RequestBody UserPostCursorRequest request,
+    @PostMapping("/myPost")
+    @Operation(summary = "내 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyPosts(
+            @RequestBody PostCursorRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         String providerId = principalDetails.getUser().getProviderId();
-        CursorResponse<PostFeedDto> response = postService.getMyPagePostsWithCursor(request, providerId);
+        CursorResponse<PostFeedDto> response = postService.getMyPostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/myCommentedPosts")
+    @Operation(summary = "내가 댓글 단 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내가 댓글을 단 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyCommentedPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getUserCommentedPostsWithCursor(request, providerId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/myEmotionPosts")
+    @Operation(summary = "내가 감정표현한 게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 내가 감정표현을 한 게시글을 조회합니다.")
+    public ResponseEntity<CursorResponse<PostFeedDto>> getMyEmotedPosts(
+            @RequestBody PostCursorRequest request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        String providerId = principalDetails.getUser().getProviderId();
+        CursorResponse<PostFeedDto> response = postService.getUserEmotedPostsWithCursor(request, providerId);
         return ResponseEntity.ok(response);
     }
 

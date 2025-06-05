@@ -4,7 +4,7 @@ import com.example.trace.gpt.dto.VerificationDto;
 import com.example.trace.gpt.service.PostVerificationService;
 import com.example.trace.post.domain.PostType;
 import com.example.trace.post.dto.cursor.CursorResponse;
-import com.example.trace.user.dto.UserPostCursorRequest;
+import com.example.trace.post.dto.cursor.PostCursorRequest;
 import com.example.trace.post.dto.post.PostFeedDto;
 import com.example.trace.user.User;
 import com.example.trace.auth.dto.PrincipalDetails;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/posts")
@@ -101,6 +102,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }
 
+
     @GetMapping("/{id}")
     @Operation(summary = "게시글 조회", description = "게시글을 조회합니다.")
     @ApiResponse(
@@ -123,7 +125,7 @@ public class PostController {
     @PostMapping("/feed")
     @Operation(summary = "게시글 커서 기반 페이징 조회", description = "커서 기반 페이징으로 게시글을 조회합니다.")
     public ResponseEntity<CursorResponse<PostFeedDto>> getAllPosts(
-            @RequestBody UserPostCursorRequest request,
+            @RequestBody PostCursorRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
         String providerId = principalDetails.getUser().getProviderId();
         CursorResponse<PostFeedDto> response = postService.getAllPostsWithCursor(
@@ -131,6 +133,7 @@ public class PostController {
 
         return ResponseEntity.ok(response);
     }
+
 
     @PutMapping("/{id}")
     @Operation(summary = "게시글 수정", description = "게시글을 수정합니다.")
@@ -142,6 +145,9 @@ public class PostController {
         PostDto updatedPost = postService.updatePost(id, postUpdateDto, providerId);
         return ResponseEntity.ok(updatedPost);
     }
+
+
+
 
     @DeleteMapping("/{id}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
@@ -161,10 +167,12 @@ public class PostController {
     @PostMapping("/search")
     @Operation(summary = "게시글 검색 (커서 기반 페이징)", description = "키워드로 게시글을 검색하고 커서 기반 페이징으로 조회합니다.")
     public ResponseEntity<CursorResponse<PostFeedDto>> searchPosts(
-            @RequestBody UserPostCursorRequest request,
+            @RequestBody PostCursorRequest request,
             @AuthenticationPrincipal PrincipalDetails principalDetails) {
+
         String providerId = principalDetails.getUser().getProviderId();
         CursorResponse<PostFeedDto> response = postService.searchPostsWithCursor(request, providerId);
+
         return ResponseEntity.ok(response);
     }
 
