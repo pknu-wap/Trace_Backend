@@ -169,7 +169,7 @@ public class DailyMissionService {
         Integer size = request.getSize() != null ? request.getSize() : DEFAULT_PAGE_SIZE;
 
         List<DailyMission> completedMissions = dailyMissionRepository
-                .findVerifiedMissionsWithCursor(user, request.getCursorDateTime().toLocalDate(), size + 1);
+                .findVerifiedMissionsWithCursor(user, request.getCursorDateTime() != null ? request.getCursorDateTime().toLocalDate() : null, size + 1);
 
         boolean hasNext = false;
         if (completedMissions.size() > size) {
