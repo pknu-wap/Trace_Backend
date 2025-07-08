@@ -423,4 +423,65 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CursorResponse<PostFeedDto> getMyPagePostsWithCursor(PostCursorRequest request, String providerId) {
+        int size = request.getSize() != null ? request.getSize() : 10;
+        List<PostFeedDto> posts;
+
+        switch (request.getMyPageTab()) {
+            case WRITTEN_POSTS:
+                posts = postRepository.findUserPosts(
+                        providerId,
+                        request.getCursorDateTime(),
+                        request.getCursorId(),
+                        size + 1
+                );
+                break;
+            case COMMENTED_POSTS:
+                posts = postRepository.findUserCommentedPosts(
+                        providerId,
+                        request.getCursorDateTime(),
+                        request.getCursorId(),
+                        size + 1
+                );
+                break;
+            case REACTED_POSTS:
+                posts = postRepository.findUserEmotedPosts(
+                        providerId,
+                        request.getCursorDateTime(),
+                        request.getCursorId(),
+                        size + 1
+                );
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid MyPageTab type");
+        }
+
+        // 다음 페이지 여부 확인
+        boolean hasNext = false;
+        if (posts.size() > size) {
+            hasNext = true;
+            posts = posts.subList(0, size);
+        }
+
+        // 커서 메타데이터 생성
+        CursorResponse.CursorMeta nextCursor = null;
+        if (!posts.isEmpty() && hasNext) {
+            PostFeedDto lastPost = posts.get(posts.size() - 1);
+            nextCursor = CursorResponse.CursorMeta.builder()
+                    .dateTime(lastPost.getCreatedAt())
+                    .id(lastPost.getPostId())
+                    .build();
+        }
+
+        // 응답 생성
+        return CursorResponse.<PostFeedDto>builder()
+                .content(posts)
+                .hasNext(hasNext)
+                .cursor(nextCursor)
+                .build();
+    }
+
+
 }

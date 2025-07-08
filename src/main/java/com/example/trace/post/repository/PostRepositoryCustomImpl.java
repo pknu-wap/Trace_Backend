@@ -41,7 +41,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
     }
 
     StringExpression imageUrlExpr = Expressions.cases()
-            .when(post.images.isEmpty()).then("")
+            .when(post.images.isEmpty()).then(Expressions.stringTemplate("null"))
             .otherwise(
                     JPAExpressions
                             .select(postImage.imageUrl)

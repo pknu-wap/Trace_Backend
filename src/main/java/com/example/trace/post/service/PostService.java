@@ -29,4 +29,6 @@ public interface PostService {
 
     CursorResponse<PostFeedDto> getUserEmotedPostsWithCursor(PostCursorRequest request, String providerId);
 
+    CursorResponse<PostFeedDto> getMyPagePostsWithCursor(PostCursorRequest request, String providerId);
+
 } 
