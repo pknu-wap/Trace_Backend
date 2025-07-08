@@ -1,1 +1,1 @@
-web: java -Duser.timezone=Asia/Seoul -jar *.jar
+web: java -Xms256m -Xmx256m -jar Trace-0.0.1-SNAPSHOT.jar
