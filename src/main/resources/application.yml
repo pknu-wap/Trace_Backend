@@ -171,7 +171,7 @@ spring:
   config:
     activate:
       on-profile: local
-
+    # 로컬 개발 환경에서 H2 데이터베이스 사용
   sql:
     init:
       mode: never
